@@ -6,13 +6,13 @@
   },
   {
     "file": ".github/scripts/verify-mac-build.py",
-    "bytes": 5265,
-    "sha256": "5c5976a675eb67c1e2238535e0bba3c662a50dd959fcb1a8480183565ceacca6"
+    "bytes": 6141,
+    "sha256": "114316e1338fb01f2ba19de6c6871356f1a96d5482e7493f5018cd7ddeae7245"
   },
   {
     "file": ".github/workflows/build-mac-isolated.yml",
-    "bytes": 2742,
-    "sha256": "35d44db04cbb30de7a74289e90f81a53309252d79d3a5cbdc96ff9e6ad11119e"
+    "bytes": 3064,
+    "sha256": "ca1b1a5cb9ae9bcc9e5e9bb676a1f16e7b43b6f02e6d3e2e56afba046893b5cd"
   },
   {
     "file": "electron/afterPack.js",

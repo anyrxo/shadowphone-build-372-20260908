@@ -60,11 +60,12 @@ def check_artifact():
     env = {**os.environ, 'LOCAL_MODE':'1', 'PORT':str(port), 'BIND_HOST':'127.0.0.1',
            'SHADOWPHONE_API_SECRET':'isolated-build-readiness', 'ANDROID_ADB_SERVER_PORT':'5137'}
     ready = None
-    with (ROOT / 'electron/dist/brain-readiness.log').open('wb') as log:
+    log_path = ROOT / 'electron/dist/brain-readiness.log'
+    with log_path.open('wb') as log:
         process = subprocess.Popen([str(brain)], cwd=brain.parent, env=env, stdout=log, stderr=subprocess.STDOUT)
         try:
             for _ in range(40):
-                assert process.poll() is None, 'Packaged Brain exited'
+                assert process.poll() is None, f'Packaged Brain exited with code {process.poll()}'
                 try:
                     with urllib.request.urlopen(f'http://127.0.0.1:{port}/ready', timeout=2) as response:
                         ready = json.load(response)
@@ -75,6 +76,19 @@ def check_artifact():
                 time.sleep(1)
             assert ready and ready.get('ready') is True and ready.get('required_count') == 16
             assert not ready.get('missing_modules') and not ready.get('failed_modules')
+        except Exception as error:
+            log.flush()
+            with log_path.open('rb') as saved:
+                saved.seek(max(0, log_path.stat().st_size - 32768))
+                tail = saved.read(32768).decode('utf-8', errors='replace')
+            tail = tail.replace(env['SHADOWPHONE_API_SECRET'], '[REDACTED]')
+            failure = {'architecture': ARCH, 'runnerMachine': platform.machine(),
+                       'githubCommit': os.environ.get('GITHUB_SHA'), 'sourceManifestSha256': EXPECTED,
+                       'exit_code': process.poll(), 'error': str(error), 'ready': ready,
+                       'startup_log_tail': tail}
+            (ROOT / 'electron/dist' / f'mac-failure-{ARCH}.json').write_text(json.dumps(failure, indent=2))
+            print(json.dumps(failure), flush=True)
+            raise
         finally:
             process.terminate()
             try:

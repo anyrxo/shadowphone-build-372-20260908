@@ -65,6 +65,14 @@ jobs:
         run: npx --no-install electron-builder --mac --${TARGET_ARCH} --publish never --config.artifactName='ShadowPhone-${version}-${arch}.${ext}'
       - name: Verify packaged Brain, signature and DMG
         run: python .github/scripts/verify-mac-build.py artifact
+      - name: Preserve failed Brain startup diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadowphone-macos-failure-${{ matrix.arch }}
+          path: electron/dist/mac-failure-${{ matrix.arch }}.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: Store artifacts for separate reviewed publication
         uses: actions/upload-artifact@v4
         with:
