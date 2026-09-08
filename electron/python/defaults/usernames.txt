@@ -1,0 +1,14 @@
+# DEFAULT FOLLOW LIST - Used when no profile-specific list exists
+# Add Instagram usernames to follow (one per line)
+# Remove the # to uncomment
+
+nature_photography
+travel_blogger
+fitness_motivation
+food_photography
+lifestyle_blog
+art_gallery
+music_lover
+book_reader
+coffee_addict
+adventure_seeker

@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>ShadowPhone Wizard</title>
+<link href="main.css" rel="stylesheet">
+<style>
+/*
+ * ShadowPhone Wizard — custom landing layered over ws-scrcpy.
+ *
+ * Modes:
+ *   • landing (no hash, scope=*)        — grid of LIVE iframes, one per device,
+ *                                          each streaming H.264 via the MSE
+ *                                          player. Manager sees the whole
+ *                                          fleet at once.
+ *   • landing (no hash, scope=device)   — single live iframe for the permitted
+ *                                          device.
+ *   • landing (?embed=1 in URL)         — embed mode (tile in master view) —
+ *                                          renders just enough chrome so it can
+ *                                          host an iframe of itself in stream
+ *                                          mode without recursion.
+ *   • stream (#!action=stream&udid=…)   — ws-scrcpy's own stream UI takes over;
+ *                                          our wizard chrome is hidden by CSS.
+ *
+ * Theme:
+ *   ShadowPhone brand is YELLOW (#FACC15) on near-black, with subtle accents.
+ *   Previously the wizard accidentally inherited a green pulse + brand color
+ *   from ws-scrcpy's default palette. Now matches the desktop app.
+ */
+:root {
+    --sp-bg: #050505;
+    --sp-bg-elev: #0c0c0d;
+    --sp-surface: #121214;
+    --sp-surface-2: #18181b;
+    --sp-border: rgba(255, 255, 255, 0.07);
+    --sp-border-strong: rgba(255, 255, 255, 0.18);
+    --sp-text: rgba(255, 255, 255, 0.96);
+    --sp-text-secondary: rgba(255, 255, 255, 0.72);
+    --sp-text-tertiary: rgba(255, 255, 255, 0.42);
+    --sp-text-hushed: rgba(255, 255, 255, 0.22);
+    /* ShadowPhone yellow. The active "live" pip uses warm green so it
+       reads as a state indicator, not a brand cue. */
+    --sp-brand: #FACC15;
+    --sp-brand-soft: rgba(250, 204, 21, 0.13);
+    --sp-brand-ring: rgba(250, 204, 21, 0.22);
+    --sp-brand-strong: #FFD83A;
+    --sp-success: #4ade80;
+    --sp-remote-rail-width: 208px;
+    --sp-display: -apple-system, "SF Pro Display", "Segoe UI Variable Display", "Inter", system-ui, sans-serif;
+    --sp-body: -apple-system, "SF Pro Text", "Segoe UI", "Inter", system-ui, sans-serif;
+    --sp-mono: "SF Mono", "JetBrains Mono", "Cascadia Mono", "Menlo", monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    background: var(--sp-bg);
+    color: var(--sp-text);
+    font-family: var(--sp-body);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* Hide ws-scrcpy's default device tracker DOM whenever the landing is
+   visible (no stream hash). It renders into body, so we kill anything not
+   inside our wizard container. The stream view re-shows ws-scrcpy's DOM
+   by toggling body[data-sp-mode="stream"]. */
+body:not([data-sp-mode]) > :not(#sp-wizard):not(#sp-flash):not(script):not(style):not(link) { display: none !important; }
+body[data-sp-mode="stream"] #sp-wizard { display: none !important; }
+
+/* Stream mode runs inside a tile iframe. ws-scrcpy renders its video at the
+   phone's NATIVE pixel size (e.g. 320x720), unscaled and top-left, so
+   without this the picture sits in a corner of the iframe with black
+   margins and reads as the wrong size. Center ws-scrcpy's device-view in
+   the iframe and let the <video> fit inside while keeping aspect ratio.
+   The control toolbar is kept (VAs need to tap back/home/recents). */
+body[data-sp-mode="stream"] {
+    overflow: hidden;
+    background: #000;
+}
+body[data-sp-mode="stream"] .device-view {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    background: #000;
+}
+body[data-sp-mode="stream"]:not([data-sp-embed]) .device-view {
+    right: var(--sp-remote-rail-width);
+}
+/* The .video block holds the stream; let it take the space left of the
+   toolbar and center the picture inside. */
+body[data-sp-mode="stream"] .video {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+/* video-layer (the stream) and touch-layer (input overlay) are absolutely
+   positioned by ws-scrcpy at native size. Force both to fit the available
+   space, preserving aspect ratio, centered. object-fit keeps the phone
+   un-stretched; the touch-layer matches so taps still map correctly.
+   The !important is needed because the MSE player sets explicit width/
+   height in pixels on the video element (matching device resolution),
+   which would otherwise win in the cascade and re-pin the video to its
+   intrinsic size — leaving a small picture stuck in the corner of a big
+   viewport. */
+body[data-sp-mode="stream"] .video > video,
+body[data-sp-mode="stream"] .video > canvas {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+}
+/* Popped-out tab: keep ws-scrcpy's side toolbar (VAs still need
+   back/home/recents on the device). Hide the more-box overlay
+   though — it pops up by default and overlays the right edge of
+   the phone, which is exactly where our pop-out toolbar buttons
+   live; collisions read as the wrong thing being interactive. */
+body[data-sp-mode="stream"]:not([data-sp-embed]) .control-buttons-list {
+    flex: 0 0 auto;
+    z-index: 2;
+}
+body[data-sp-mode="stream"]:not([data-sp-embed]) .more-box {
+    display: none !important;
+}
+.sp-remote-control-rail {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 999998;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: var(--sp-remote-rail-width);
+    padding: 32px 10px 12px;
+    overflow-y: auto;
+    background: #09090a;
+    border-left: 1px solid rgba(250, 204, 21, 0.24);
+    box-shadow: -12px 0 32px rgba(0, 0, 0, 0.34);
+}
+/* Embedded grid tile: hide the toolbar + "more" panel — they don't fit a
+   small tile and overlap the video. The grid is for monitoring; control is
+   done by popping a phone out to its own tab (which keeps the toolbar). */
+body[data-sp-mode="stream"][data-sp-embed] .control-buttons-list,
+body[data-sp-mode="stream"][data-sp-embed] .more-box,
+body[data-sp-mode="stream"][data-sp-embed] .sp-remote-control-rail {
+    display: none !important;
+}
+
+/* Wrapper used to be capped at 1280px which left ~50% of the screen
+   empty on any modern monitor. VAs run this fullscreen all day —
+   waste a third of their monitor and they're scrolling pointlessly.
+   Now expands to the viewport (with comfortable side gutters) and
+   gives each tile a fair share of width up to a sensible ceiling. */
+#sp-wizard {
+    max-width: min(2400px, calc(100vw - 48px));
+    margin: 0 auto;
+    padding: 28px 24px 64px;
+}
+
+.sp-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--sp-border);
+    margin-bottom: 28px;
+}
+.sp-header__title {
+    font-family: var(--sp-display);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 4px;
+    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.78) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.sp-header__subtitle {
+    font-size: 13px;
+    color: var(--sp-text-secondary);
+    line-height: 1.5;
+    max-width: 560px;
+    margin: 0;
+}
+.sp-header__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 8px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--sp-brand-soft);
+    border: 1px solid rgba(250, 204, 21, 0.28);
+    color: var(--sp-brand);
+    font-family: var(--sp-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.sp-header__chip--scope {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--sp-border);
+    color: var(--sp-text-secondary);
+}
+.sp-header__chip__dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--sp-brand);
+    box-shadow: 0 0 0 3px var(--sp-brand-ring);
+}
+.sp-header__actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+
+.sp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    height: 36px;
+    border-radius: 9px;
+    font-family: var(--sp-display);
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    white-space: nowrap;
+}
+.sp-btn:active { transform: translateY(1px); }
+.sp-btn--primary {
+    background: var(--sp-brand);
+    color: #000;
+    box-shadow: 0 4px 14px var(--sp-brand-ring), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.sp-btn--primary:hover { background: var(--sp-brand-strong); }
+.sp-btn--ghost {
+    background: transparent;
+    color: var(--sp-text-secondary);
+    border: 1px solid var(--sp-border);
+}
+.sp-btn--ghost:hover { background: var(--sp-surface); color: var(--sp-text); border-color: var(--sp-border-strong); }
+
+/* Master grid is the heart of the page in master scope — live iframes,
+   each running its own ws-scrcpy stream.
+   `auto-fit` (not `auto-fill`) lets empty columns COLLAPSE so the
+   actual phones stretch to fill the available row — with 3 phones on
+   a wide monitor each tile gets ~33% of the row instead of being stuck
+   at the 248px min. min-content-min on the inner minmax keeps tiles
+   from overflowing on narrow viewports. */
+.sp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+    gap: 18px;
+    justify-content: center;
+}
+.sp-grid--solo {
+    /* Single permitted device → one centered tile, taller (the whole
+       viewport is yours; fill it). */
+    grid-template-columns: min(440px, 100%);
+    justify-content: center;
+}
+
+.sp-empty {
+    grid-column: 1 / -1;
+    padding: 56px 24px;
+    text-align: center;
+    border: 1px dashed var(--sp-border);
+    border-radius: 14px;
+    color: var(--sp-text-tertiary);
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.02);
+}
+.sp-empty strong { color: var(--sp-text-secondary); font-weight: 600; }
+
+.sp-tile {
+    position: relative;
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--sp-surface) 0%, var(--sp-bg-elev) 100%);
+    border: 1px solid var(--sp-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+.sp-tile:hover { border-color: var(--sp-border-strong); box-shadow: 0 14px 40px rgba(0,0,0,0.4); }
+
+.sp-tile__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--sp-border);
+    min-width: 0;
+}
+.sp-tile__head__info { min-width: 0; }
+.sp-tile__name {
+    font-family: var(--sp-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sp-text);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+.sp-tile__model {
+    font-size: 11px;
+    color: var(--sp-text-tertiary);
+    margin: 1px 0 0;
+}
+.sp-tile__serial {
+    margin-top: 4px;
+    font-family: var(--sp-mono);
+    font-size: 10px;
+    color: var(--sp-text-hushed);
+    font-variant-numeric: tabular-nums;
+}
+.sp-tile__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--sp-mono);
+    font-size: 10.5px;
+    color: var(--sp-success);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+.sp-tile__status__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sp-success); box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18); }
+
+/* The stream iframe inside each tile.
+   Height scales with viewport so on big monitors tiles aren't tiny.
+   The `aspect-ratio: 9 / 19.5` (phone portrait) drives width from
+   that height — we keep this rather than a width:100%+max-height
+   pair because that combination silently disables aspect-ratio in
+   the browser and the tile becomes landscape.
+   The min/max clamp keeps tiles usable on laptops AND on 4K monitors:
+   240px lower bound (still readable), ~88vh upper bound so a single
+   tile doesn't push the actions+header off-screen. */
+.sp-tile__stream {
+    height: clamp(420px, calc(100vh - 220px), 88vh);
+    aspect-ratio: 9 / 19.5;
+    margin: 0 auto;
+    background: #000;
+    overflow: hidden;
+    position: relative;
+}
+.sp-tile__stream iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #000;
+}
+
+.sp-tile__actions {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--sp-border);
+    background: rgba(0, 0, 0, 0.2);
+    flex-wrap: wrap;
+}
+.sp-tile__actions .sp-btn { flex: 1; justify-content: center; min-width: 0; padding: 0 12px; height: 32px; font-size: 12px; }
+.sp-tile__actions .sp-btn--ghost { flex: 0 0 auto; padding: 0 10px; }
+
+/* The hidden file input lives next to its label-button. */
+.sp-upload-input { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
+
+.sp-flash {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: var(--sp-surface);
+    border: 1px solid var(--sp-border-strong);
+    color: var(--sp-text);
+    font-family: var(--sp-body);
+    font-size: 13px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+    z-index: 9999;
+}
+.sp-flash--visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.sp-flash--error { border-color: rgba(255, 90, 90, 0.6); color: #ffd0d0; }
+
+.sp-footnote {
+    margin-top: 26px;
+    padding-top: 16px;
+    border-top: 1px solid var(--sp-border);
+    color: var(--sp-text-tertiary);
+    font-size: 11px;
+    line-height: 1.6;
+    text-align: center;
+}
+.sp-footnote code { font-family: var(--sp-mono); color: var(--sp-text-secondary); }
+
+.sp-help {
+    margin-top: 18px;
+    padding: 12px 16px;
+    border: 1px solid var(--sp-border);
+    border-radius: 10px;
+    background: var(--sp-bg-elev);
+    color: var(--sp-text-secondary);
+    font-size: 12.5px;
+    line-height: 1.55;
+}
+.sp-help > summary {
+    cursor: pointer;
+    color: var(--sp-brand);
+    font-weight: 600;
+    list-style: none;
+    user-select: none;
+}
+.sp-help > summary::-webkit-details-marker { display: none; }
+.sp-help[open] > summary { margin-bottom: 10px; }
+.sp-help__body p { margin: 6px 0; }
+.sp-help__body ol { margin: 6px 0 6px 20px; padding: 0; }
+.sp-help__body ol li { margin: 2px 0; }
+.sp-help__body em { color: var(--sp-text); font-style: normal; font-weight: 600; }
+.sp-help__body code { font-family: var(--sp-mono); color: var(--sp-brand); background: var(--sp-brand-soft); padding: 1px 6px; border-radius: 4px; }
+.sp-help__body strong { color: var(--sp-text); }
+
+/* Mobile */
+@media (max-width: 720px) {
+    #sp-wizard { padding: 20px 14px 60px; }
+    .sp-header { flex-direction: column; align-items: stretch; }
+    .sp-header__actions { align-items: stretch; }
+    .sp-grid, .sp-grid--solo { grid-template-columns: 1fr; }
+    .sp-tile__stream { max-height: 70vh; }
+}
+</style>
+<script defer src="bundle.js"></script>
+</head>
+<body>
+<div id="sp-wizard">
+    <header class="sp-header">
+        <div style="min-width: 0;">
+            <h1 class="sp-header__title">ShadowPhone Wizard</h1>
+            <p class="sp-header__subtitle" id="sp-subtitle">
+                Live mirror of the connected phone fleet. Streams use H.264 over WebSocket.
+            </p>
+            <div style="margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;">
+                <span class="sp-header__chip"><span class="sp-header__chip__dot"></span><span id="sp-conn-count">—</span></span>
+                <span class="sp-header__chip sp-header__chip--scope" id="sp-scope-chip">loading…</span>
+            </div>
+        </div>
+        <div class="sp-header__actions" id="sp-header-actions">
+            <!-- Master-link copy button is injected here if the visitor has master scope -->
+        </div>
+    </header>
+
+    <main>
+        <div class="sp-grid" id="sp-grid">
+            <div class="sp-empty">Looking for phones…</div>
+        </div>
+    </main>
+
+    <div class="sp-footnote" id="sp-footnote">
+        Hover any tile and click <strong style="color: var(--sp-text-secondary);">Pop out</strong> to fullscreen a phone.
+        <strong style="color: var(--sp-text-secondary);">Upload</strong> drops files into <code>/sdcard/Download/</code>.
+        Stop the wizard from the desktop app to revoke every link.
+    </div>
+
+    <!--
+      Operator help block. Two specific failure modes have hit users in
+      the field: (a) the portal URL won't load on one particular PC
+      because the home router's DNS filter blocks *.trycloudflare.com
+      subdomains (router-level rebind/threat-protection feature on
+      Verizon CR1000A and similar). (b) A popped-out tile loads black
+      because ws-scrcpy's multi-client codec init dropped the new
+      client's SPS/PPS. Both have a one-click recovery the user just
+      needs to know about — surface it here instead of forcing every
+      support escalation to re-discover it.
+    -->
+    <details class="sp-help" id="sp-help">
+        <summary>Portal won't load or a tile is black? Click for fixes →</summary>
+        <div class="sp-help__body">
+            <p><strong>Tile is black or stuck?</strong> Refresh that tab. The wizard auto-recovers on a fresh load (ws-scrcpy occasionally misses codec init on a second client joining an already-streaming server; a refresh re-handshakes cleanly).</p>
+            <p><strong>Portal page won't load on a PC (other PCs work fine)?</strong> Your home router is DNS-blocking <code>*.trycloudflare.com</code> subdomains. Fix in Chrome / Edge in 30 seconds — no admin needed:</p>
+            <ol>
+                <li>Open browser <em>Settings</em></li>
+                <li><em>Privacy and security</em> → <em>Security</em></li>
+                <li>Toggle <em>Use secure DNS</em> on, choose <em>"With Cloudflare (1.1.1.1)"</em> (or Google)</li>
+                <li>Reload this page</li>
+            </ol>
+            <p style="margin-top:6px;">For a whole-LAN fix, log into the router and disable DNS rebind protection / DNS filtering — or allow-list <code>trycloudflare.com</code>.</p>
+        </div>
+    </details>
+</div>
+
+<div class="sp-flash" id="sp-flash"></div>
+
+<script>
+/*
+ * ShadowPhone Wizard bootstrap.
+ *
+ *  • If hash is "#!action=stream...", we're being rendered INSIDE an iframe
+ *    tile (or in a popped-out tab). Tag <body data-sp-mode="stream"> so the
+ *    landing CSS hides our chrome and ws-scrcpy's own stream UI takes over.
+ *
+ *  • If hash is empty, render the device grid. Each tile contains an iframe
+ *    that loads /?t=<token>#!action=stream&udid=<serial>&player=mse&ws=...
+ *    so the live stream renders inline. Master scope visitors see every
+ *    device; device-scoped visitors see only theirs.
+ *
+ * BLACK-SCREEN ROOT CAUSE (fixed here):
+ *   ws-scrcpy's StreamClientScrcpy.parseParameters() REQUIRES a `ws` query
+ *   param — the device-side proxy-adb WebSocket URL. The wizard previously
+ *   built stream URLs with only action+udid+player, so ws-scrcpy threw
+ *   "Missing required parameter ws" before any connection was made and the
+ *   tile stayed black. streamUrlFor() now appends the correct `ws` URL,
+ *   exactly as ws-scrcpy's own device list does (DeviceTracker.createUrl:
+ *   action=proxy-adb&remote=tcp:8886&udid=<serial>).
+ *
+ *   Second issue: the wizard forced the "WebCodecs" player. In this bundled
+ *   ws-scrcpy build the WebCodecs and Broadway players decode frames but
+ *   never paint them (BaseCanvasBasedPlayer.onFrameDecoded early-returns —
+ *   `this.canvas` is never set for those players), so the canvas stays
+ *   black. Only the MSE player ("H264 Converter", code name `mse`) renders
+ *   correctly. PREFERRED_PLAYER is now `mse`.
+ */
+(function () {
+    // ws-scrcpy player CODE NAME. `mse` ("H264 Converter") is the only player
+    // in this bundle that actually paints frames — see note above. The bundle
+    // accepts either code name or full name in the `player` URL param.
+    var PREFERRED_PLAYER = 'mse'
+    // Device-side scrcpy-server port. ws-scrcpy forwards to this over adb.
+    var SCRCPY_SERVER_PORT = 8886
+
+    function isStreamHash() {
+        var h = (location.hash || '').replace(/^#!?/, '')
+        if (!h) return false
+        try {
+            var q = new URLSearchParams(h)
+            return q.get('action') === 'stream' && !!q.get('udid')
+        } catch (_) { return false }
+    }
+
+    function currentToken() {
+        try { return new URL(location.href).searchParams.get('t') || '' }
+        catch (_) { return '' }
+    }
+
+    // Is this stream view embedded in a master-grid tile? (sp_embed=1 in the
+    // query). Embedded views hide ws-scrcpy's control toolbar via CSS so the
+    // video fits a small tile cleanly; popped-out tabs keep the toolbar.
+    function isEmbedded() {
+        try { return new URL(location.href).searchParams.get('sp_embed') === '1' }
+        catch (_) { return false }
+    }
+
+    if (isStreamHash()) {
+        // ws-scrcpy's own stream UI (StreamClientScrcpy) takes over the DOM.
+        // We only tag the body so the landing CSS hides the wizard chrome.
+        // No auto-click / Configure-dialog handling is needed: a stream hash
+        // that carries a valid `ws` param streams directly without a dialog.
+        document.body.setAttribute('data-sp-mode', 'stream')
+        if (isEmbedded()) document.body.setAttribute('data-sp-embed', '1')
+        try {
+            var sq = new URLSearchParams((location.hash || '').replace(/^#!?/, ''))
+            document.title = 'Stream · ' + (sq.get('udid') || '').slice(0, 12)
+        } catch (_) { /* best effort */ }
+
+        // Pop-out safety net + diagnostic: some browsers still suspend muted
+        // autoplay on top-level windows, so the user sees "black screen" with
+        // no UI cue. We watch the video element once it appears and:
+        //   - actively retry play() if it's paused (some autoplay blocks lift
+        //     after a brief delay or after a single play() retry).
+        //   - if it's STILL paused after the retry, paint a click-to-play
+        //     overlay so the user has one obvious action to recover.
+        //   - in either case render a tiny corner diagnostic showing the
+        //     stream's actual state (resolution, video.paused, readyState,
+        //     buffered seconds). Without this overlay, "black screen" gives
+        //     zero hint whether the issue is autoplay, network, or codec.
+        var spStreamGuard = (function () {
+            var armed = false
+            var diagEl = null
+            function ensureDiag() {
+                if (diagEl) return diagEl
+                diagEl = document.createElement('div')
+                diagEl.id = 'sp-stream-diag'
+                diagEl.setAttribute('style',
+                    'position:fixed;top:6px;right:8px;z-index:999998;' +
+                    'padding:4px 8px;border-radius:6px;font:500 11px/1.3 ui-monospace,Menlo,monospace;' +
+                    'background:rgba(0,0,0,0.55);color:#cbd5e1;pointer-events:none;')
+                document.body.appendChild(diagEl)
+                return diagEl
+            }
+            function paintDiag(v) {
+                var d = ensureDiag()
+                var ws = window.scServerStatus || 'unknown'
+                var size = (v.videoWidth || 0) + 'x' + (v.videoHeight || 0)
+                var rs = v.readyState
+                var t = v.currentTime.toFixed(2)
+                d.textContent = (v.paused ? '⏸ ' : '▶ ') + size + ' rs=' + rs + ' t=' + t
+            }
+            function showPlayOverlay(v) {
+                if (document.getElementById('sp-play-overlay')) return
+                var ov = document.createElement('div')
+                ov.id = 'sp-play-overlay'
+                ov.setAttribute('style',
+                    'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;' +
+                    'background:rgba(0,0,0,0.8);color:#fff;font:600 18px/1.4 system-ui;' +
+                    'cursor:pointer;z-index:999999;text-align:center;padding:24px;')
+                ov.innerHTML = 'Tap or click to start stream<br>' +
+                    '<span style="font-size:13px;font-weight:400;opacity:0.7">' +
+                    '(your browser suspended autoplay)</span>'
+                ov.addEventListener('click', function () {
+                    try { v.play().catch(function () {}) } catch (_) {}
+                    try { ov.remove() } catch (_) {}
+                }, { once: true })
+                document.body.appendChild(ov)
+            }
+            // 2.13.0: client-side freeze pill is GONE. Recovery decisions
+            // live in lib/device-health.js on the wizard side. The page
+            // subscribes to /sp-api/health-events SSE (see EventSource
+            // listener below) and reloads on iframe_reload_hint.
+            return {
+                attach: function (v) {
+                    if (armed) return
+                    armed = true
+                    paintDiag(v)
+                    v.addEventListener('timeupdate', function () { paintDiag(v) })
+                    v.addEventListener('pause', function () { paintDiag(v) })
+                    v.addEventListener('playing', function () { paintDiag(v) })
+                    try { v.play().catch(function () {}) } catch (_) {}
+                    setTimeout(function () {
+                        if (v.paused) {
+                            try { v.play().catch(function () { showPlayOverlay(v) }) } catch (_) { showPlayOverlay(v) }
+                            setTimeout(function () { if (v.paused) showPlayOverlay(v) }, 1500)
+                        }
+                    }, 2000)
+                }
+            }
+        })()
+        // 2.13.0: subscribe to device-health iframe_reload_hint events.
+        // The state machine on the server decides when a stream is truly
+        // unhealthy and broadcasts a hint; we reload on receipt.
+        try {
+            var _hsrc = new EventSource('/sp-api/health-events')
+            _hsrc.addEventListener('iframe_reload_hint', function (ev) {
+                try {
+                    var p = JSON.parse(ev.data)
+                    var streamUdidNow = new URLSearchParams((location.hash || '').replace(/^#!?/, '')).get('udid')
+                    if (streamUdidNow && p && p.serial === streamUdidNow) location.reload()
+                } catch (_) {}
+            })
+        } catch (_) {}
+        // Watch for the video element ws-scrcpy creates dynamically.
+        // Only run the diag-banner + click-to-play overlay in POP-OUT
+        // tabs (top-level windows). Master-grid tile iframes are tiny
+        // and never need a click-to-play (iframe `allow="autoplay"`
+        // covers it) — and the corner diag dot looks like it's painted
+        // ON the phone screen at tile scale, which the operator
+        // rightly flagged as ugly.
+        if (!isEmbedded()) {
+            var spStreamWatcher = new MutationObserver(function () {
+                var v = document.querySelector('video')
+                if (v) {
+                    spStreamWatcher.disconnect()
+                    spStreamGuard.attach(v)
+                }
+            })
+            spStreamWatcher.observe(document.body, { childList: true, subtree: true })
+        }
+
+        // Pop-out operator toolbar — black + yellow theme to match the
+        // ShadowPhone wizard. Vertical stack of quick-actions in the
+        // top-right so a VA looking at a single phone has everything
+        // they normally need without leaving the popped-out tab:
+        // upload a file, wipe the gallery, quick-launch IG/TikTok/Gmail.
+        // Plus a bottom-of-screen disclaimer telling the VA the
+        // recovery move when a tile goes black (refresh the tab — the
+        // 2.12.2 auto-reload picks it up on a fresh load).
+        var streamUdid = null
+        try { streamUdid = new URLSearchParams((location.hash || '').replace(/^#!?/, '')).get('udid') } catch (_) { /* */ }
+        // Pop-out only — the master-grid tile iframes set sp_embed=1, so
+        // isEmbedded() is true there and we leave their UI untouched
+        // (Upload / Wipe / Quick-launch / hint pill only render on the
+        // popped-out full-tab view).
+        if (streamUdid && !isEmbedded()) {
+            var spBtnStyle =
+                'display:flex;align-items:center;gap:8px;width:100%;' +
+                'padding:8px 12px;border-radius:8px;cursor:pointer;' +
+                'background:rgba(12,12,13,0.92);' +
+                'color:#FACC15;' +
+                'border:1px solid rgba(250,204,21,0.30);' +
+                "font:600 12px/1 -apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;" +
+                'text-align:left;letter-spacing:0.01em;' +
+                'backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);' +
+                'transition:background 0.12s ease, border-color 0.12s ease;'
+            var spBar = document.createElement('div')
+            spBar.id = 'sp-stream-toolbar'
+            spBar.className = 'sp-remote-control-rail'
+            document.body.appendChild(spBar)
+
+            function spMakeBtn(label) {
+                var b = document.createElement('button')
+                b.setAttribute('style', spBtnStyle)
+                b.textContent = label
+                b.addEventListener('mouseenter', function () {
+                    b.style.background = 'rgba(250,204,21,0.10)'
+                    b.style.borderColor = 'rgba(250,204,21,0.55)'
+                })
+                b.addEventListener('mouseleave', function () {
+                    b.style.background = 'rgba(12,12,13,0.92)'
+                    b.style.borderColor = 'rgba(250,204,21,0.30)'
+                })
+                spBar.appendChild(b)
+                return b
+            }
+            function spFlash(btn, msg, ms) {
+                var prev = btn.textContent
+                btn.textContent = msg
+                setTimeout(function () { btn.textContent = prev }, ms || 2500)
+            }
+
+            // Upload — Vanadium HTTP pipeline.
+            var spUploadBtn = spMakeBtn('⬆  Upload')
+            var spUploadInput = document.createElement('input')
+            spUploadInput.type = 'file'
+            spUploadInput.style.display = 'none'
+            document.body.appendChild(spUploadInput)
+            spUploadBtn.addEventListener('click', function () { spUploadInput.click() })
+            spUploadInput.addEventListener('change', function () {
+                if (!spUploadInput.files || !spUploadInput.files[0]) return
+                var file = spUploadInput.files[0]
+                spUploadBtn.textContent = '⬆  0%'
+                var xhr = new XMLHttpRequest()
+                xhr.open('POST', '/sp-api/upload-via-vanadium', true)
+                xhr.setRequestHeader('X-SP-Serial', streamUdid)
+                xhr.setRequestHeader('X-SP-Filename', file.name)
+                xhr.setRequestHeader('Content-Type', 'application/octet-stream')
+                xhr.upload.onprogress = function (e) {
+                    if (e.lengthComputable) spUploadBtn.textContent = '⬆  ' + Math.round(100 * e.loaded / e.total) + '%'
+                }
+                xhr.onload = function () {
+                    spUploadBtn.textContent = (xhr.status >= 200 && xhr.status < 300)
+                        ? '⬆  Downloading on phone'
+                        : '⬆  Failed (' + xhr.status + ')'
+                    setTimeout(function () { spUploadBtn.textContent = '⬆  Upload' }, 4500)
+                    spUploadInput.value = ''
+                }
+                xhr.onerror = function () {
+                    spUploadBtn.textContent = '⬆  Network error'
+                    setTimeout(function () { spUploadBtn.textContent = '⬆  Upload' }, 4500)
+                }
+                xhr.send(file)
+            })
+
+            // Wipe gallery — confirm + /sp-api/wipe-gallery.
+            var spWipeBtn = spMakeBtn('🗑  Wipe gallery')
+            spWipeBtn.addEventListener('click', function () {
+                if (!confirm('Wipe all media on this phone (DCIM, Pictures, Download, Movies, IG)? Cannot be undone.')) return
+                spWipeBtn.textContent = '🗑  Wiping…'
+                fetch('/sp-api/wipe-gallery', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'X-SP-Serial': streamUdid },
+                }).then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)) })
+                  .then(function (j) { spFlash(spWipeBtn, '🗑  Wiped (user ' + (j.user || '0') + ')', 3500) })
+                  .catch(function (e) { spFlash(spWipeBtn, '🗑  Failed: ' + String(e && e.message || e).slice(0, 30), 4000); console.error('[sp] wipe-gallery', e) })
+            })
+
+            // Quick-launch apps.
+            function spLaunch(label, pkg) {
+                var b = spMakeBtn(label)
+                b.addEventListener('click', function () {
+                    spFlash(b, '⌛  ' + label.replace(/^[^ ]+ +/, ''), 1500)
+                    fetch('/sp-api/launch-app', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'X-SP-Serial': streamUdid, 'X-SP-Package': pkg },
+                    }).then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)) })
+                      .then(function () { spFlash(b, '✓  ' + label.replace(/^[^ ]+ +/, ''), 1500) })
+                      .catch(function (e) { spFlash(b, '✗  ' + label.replace(/^[^ ]+ +/, ''), 2500); console.error('[sp] launch', e) })
+                })
+                return b
+            }
+            spLaunch('📷  Instagram', 'com.instagram.android')
+            spLaunch('🎵  TikTok',    'com.zhiliaoapp.musically')
+            spLaunch('✉  Gmail',      'com.google.android.gm')
+
+            // Switch Android user — lazy-loads the user list on first
+            // click, inserts a themed <select> below the button. On
+            // change, confirms + POSTs /sp-api/switch-user. Server
+            // does the airplane-on → switch → poll → airplane-off
+            // bookend so apps on the outgoing profile don't see a
+            // network blip mid-switch (anti-detection).
+            var spSwitchBtn = spMakeBtn('👤  Switch user')
+            var spSwitchSel = null
+            spSwitchBtn.addEventListener('click', function () {
+                if (spSwitchSel) { spSwitchSel.remove(); spSwitchSel = null; return }
+                spSwitchBtn.textContent = '👤  Loading…'
+                fetch('/sp-api/list-users?serial=' + encodeURIComponent(streamUdid), { credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)) })
+                    .then(function (j) {
+                        spSwitchBtn.textContent = '👤  Switch user'
+                        if (!j.ok || !j.users || !j.users.length) { spFlash(spSwitchBtn, '👤  No users found', 3000); return }
+                        spSwitchSel = document.createElement('select')
+                        spSwitchSel.setAttribute('style', spBtnStyle + 'padding:8px 10px;')
+                        var ph = document.createElement('option')
+                        ph.value = ''; ph.textContent = 'Pick a profile…'
+                        spSwitchSel.appendChild(ph)
+                        j.users.forEach(function (u) {
+                            var opt = document.createElement('option')
+                            opt.value = u.id
+                            opt.textContent = u.id + (u.id === j.active_id ? ' ★ ' : '   ') + (u.name || '?')
+                            opt.style.background = '#0c0c0d'
+                            opt.style.color = '#FACC15'
+                            spSwitchSel.appendChild(opt)
+                        })
+                        spSwitchSel.addEventListener('change', function () {
+                            if (!spSwitchSel || !spSwitchSel.value) return
+                            if (spSwitchSel.value === j.active_id) { spFlash(spSwitchBtn, '👤  Already active', 2500); spSwitchSel.remove(); spSwitchSel = null; return }
+                            if (!confirm('Switch to user ' + spSwitchSel.value + '? Airplane mode toggles during switch (~5s).')) {
+                                spSwitchSel.remove(); spSwitchSel = null; return
+                            }
+                            spSwitchBtn.textContent = '👤  Switching…'
+                            var target = spSwitchSel.value
+                            fetch('/sp-api/switch-user', {
+                                method: 'POST', credentials: 'same-origin',
+                                headers: { 'X-SP-Serial': streamUdid, 'X-SP-User-Id': target },
+                            }).then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)) })
+                              .then(function (rj) {
+                                  if (rj.ok) spFlash(spSwitchBtn, '👤  Active: ' + rj.active_user, 3500)
+                                  else spFlash(spSwitchBtn, '👤  ' + (rj.error || '?').slice(0, 22), 4000)
+                              })
+                              .catch(function (e) { spFlash(spSwitchBtn, '👤  Failed', 3000); console.error('[sp] switch-user', e) })
+                              .finally(function () {
+                                  if (spSwitchSel) { spSwitchSel.remove(); spSwitchSel = null }
+                                  setTimeout(function () { spSwitchBtn.textContent = '👤  Switch user' }, 4500)
+                              })
+                        })
+                        spBar.insertBefore(spSwitchSel, spSwitchBtn.nextSibling)
+                    })
+                    .catch(function (e) { spFlash(spSwitchBtn, '👤  Error', 3000); console.error('[sp] list-users', e) })
+            })
+
+            // New profile — prompts for a name, pm create-user + best-
+            // effort wizard bypass server-side so it's immediately
+            // usable when switched into.
+            var spNewProfBtn = spMakeBtn('➕  New profile')
+            spNewProfBtn.addEventListener('click', function () {
+                var name = prompt('Name for the new GrapheneOS profile (alphanumeric + space, max 30):')
+                if (!name) return
+                spNewProfBtn.textContent = '➕  Creating…'
+                fetch('/sp-api/create-profile', {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'X-SP-Serial': streamUdid, 'X-SP-Name': name },
+                }).then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)) })
+                  .then(function (j) {
+                      if (j.ok) spFlash(spNewProfBtn, '➕  Created user ' + j.user_id, 4500)
+                      else spFlash(spNewProfBtn, '➕  ' + (j.error || '?').slice(0, 22), 4500)
+                  })
+                  .catch(function (e) { spFlash(spNewProfBtn, '➕  Error', 4000); console.error('[sp] create-profile', e) })
+                  .finally(function () { setTimeout(function () { spNewProfBtn.textContent = '➕  New profile' }, 4800) })
+            })
+
+            // Rename profile — picker dropdown + new-name prompt. Renames
+            // are a local override stored in the same file the desktop
+            // overview uses (GrapheneOS shell can't actually rename
+            // Android users), so updates from either surface stay in sync.
+            function spProfilePicker(btn, action) {
+                spFlash(btn, btn._busy || (btn._idle + ' …'), 1500)
+                fetch('/sp-api/list-users?serial=' + encodeURIComponent(streamUdid), { credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)) })
+                    .then(function (j) {
+                        if (!j.ok || !j.users || !j.users.length) { spFlash(btn, btn._idle + '  — no users', 2500); return }
+                        var sel = document.createElement('select')
+                        sel.setAttribute('style', spBtnStyle + 'padding:8px 10px;')
+                        var ph = document.createElement('option')
+                        ph.value = ''; ph.textContent = 'Pick a profile…'
+                        sel.appendChild(ph)
+                        j.users.forEach(function (u) {
+                            var opt = document.createElement('option')
+                            opt.value = u.id
+                            opt.textContent = u.id + (u.id === j.active_id ? ' ★ ' : '   ') + (u.name || '?')
+                            opt.style.background = '#0c0c0d'
+                            opt.style.color = '#FACC15'
+                            sel.appendChild(opt)
+                        })
+                        sel.addEventListener('change', function () {
+                            if (!sel.value) return
+                            action(sel.value, function () { sel.remove() })
+                        })
+                        spBar.insertBefore(sel, btn.nextSibling)
+                    })
+                    .catch(function (e) { spFlash(btn, btn._idle + '  err', 2500); console.error('[sp] picker', e) })
+            }
+
+            var spRenameBtn = spMakeBtn('✏  Rename profile')
+            spRenameBtn._idle = '✏  Rename profile'
+            spRenameBtn._busy = '✏  Loading…'
+            spRenameBtn.addEventListener('click', function () {
+                spProfilePicker(spRenameBtn, function (userId, cleanup) {
+                    var newName = prompt('New name for profile ' + userId + ' (alphanumeric + space, max 30):')
+                    cleanup()
+                    if (!newName) return
+                    spRenameBtn.textContent = '✏  Renaming…'
+                    fetch('/sp-api/rename-profile', {
+                        method: 'POST', credentials: 'same-origin',
+                        headers: { 'X-SP-Serial': streamUdid, 'X-SP-User-Id': userId, 'X-SP-Name': newName },
+                    }).then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)) })
+                      .then(function (j) {
+                          if (j.ok) spFlash(spRenameBtn, '✏  Renamed' + (j.on_device ? ' (live)' : ' (local)'), 3500)
+                          else spFlash(spRenameBtn, '✏  ' + (j.error || '?').slice(0, 22), 4000)
+                      })
+                      .catch(function (e) { spFlash(spRenameBtn, '✏  Error', 3000); console.error('[sp] rename', e) })
+                      .finally(function () { setTimeout(function () { spRenameBtn.textContent = '✏  Rename profile' }, 4000) })
+                })
+            })
+
+            var spDeleteBtn = spMakeBtn('🗑  Delete profile')
+            spDeleteBtn._idle = '🗑  Delete profile'
+            spDeleteBtn._busy = '🗑  Loading…'
+            spDeleteBtn.addEventListener('click', function () {
+                spProfilePicker(spDeleteBtn, function (userId, cleanup) {
+                    cleanup()
+                    if (userId === '0') { spFlash(spDeleteBtn, '🗑  Cannot delete Owner', 3500); return }
+                    if (!confirm('Delete profile ' + userId + '? This wipes all of its data on the phone. Cannot be undone.')) return
+                    spDeleteBtn.textContent = '🗑  Deleting…'
+                    fetch('/sp-api/delete-profile', {
+                        method: 'POST', credentials: 'same-origin',
+                        headers: { 'X-SP-Serial': streamUdid, 'X-SP-User-Id': userId },
+                    }).then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)) })
+                      .then(function (j) {
+                          if (j.ok) spFlash(spDeleteBtn, '🗑  Deleted ' + userId, 3500)
+                          else spFlash(spDeleteBtn, '🗑  ' + (j.error || '?').slice(0, 22), 4000)
+                      })
+                      .catch(function (e) { spFlash(spDeleteBtn, '🗑  Error', 3000); console.error('[sp] delete-profile', e) })
+                      .finally(function () { setTimeout(function () { spDeleteBtn.textContent = '🗑  Delete profile' }, 4000) })
+                })
+            })
+
+            // VA hint — small, dimmed pill at bottom-center. Tells the VA
+            // the recovery move so they don't escalate a transient black.
+            var spHint = document.createElement('div')
+            spHint.id = 'sp-stream-hint'
+            spHint.setAttribute('style',
+                'position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:999996;' +
+                "padding:5px 10px;border-radius:999px;font:500 11px/1.3 -apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;" +
+                'background:rgba(12,12,13,0.78);color:rgba(255,255,255,0.55);' +
+                'border:1px solid rgba(255,255,255,0.10);' +
+                'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);' +
+                'pointer-events:none;')
+            spHint.textContent = 'Stream black or stuck? Refresh this tab — recovery is automatic on a fresh load.'
+            document.body.appendChild(spHint)
+        }
+
+        // Ctrl+V → phone, on every stream page (master tile iframes AND
+        // popped-out tabs). When the user pastes onto a focused stream,
+        // we read the browser clipboard and POST it to /sp-api/type-text;
+        // the server runs `adb shell input text` to actually type it on
+        // the phone. preventDefault() so the paste doesn't also fire
+        // browser-default actions on the host page. The iframe's
+        // clipboard-read permission is already granted (since v2.11.30).
+        var streamPasteUdid = streamUdid || null
+        if (!streamPasteUdid) {
+            try { streamPasteUdid = new URLSearchParams((location.hash || '').replace(/^#!?/, '')).get('udid') } catch (_) { /* */ }
+        }
+        if (streamPasteUdid) {
+            window.addEventListener('keydown', function (e) {
+                var modifier = e.ctrlKey || e.metaKey
+                if (!modifier || (e.key || '').toLowerCase() !== 'v') return
+                if (!navigator.clipboard || !navigator.clipboard.readText) return
+                e.preventDefault()
+                navigator.clipboard.readText().then(function (text) {
+                    if (!text) return
+                    return fetch('/sp-api/type-text', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-SP-Serial': streamPasteUdid,
+                            'Content-Type': 'text/plain;charset=utf-8',
+                        },
+                        body: text,
+                    })
+                }).then(function (r) {
+                    if (r && !r.ok) console.warn('[sp] paste-to-phone HTTP ' + r.status)
+                }).catch(function (err) {
+                    console.warn('[sp] paste-to-phone failed:', err && err.message)
+                })
+            }, true)
+        }
+
+        // Pop-out single-shot recovery. ws-scrcpy multiplexes WS clients
+        // but when a new client joins a server already streaming to the
+        // master tile, the H.264 codec init (SPS/PPS) sometimes doesn't
+        // get re-sent — the new client sees the WS connection open but
+        // its MSE decoder has no codec config so videoWidth stays 0 and
+        // the tile is black. A single page reload re-handshakes and
+        // succeeds. Users were doing this manually; doing it for them.
+        //
+        // Master tile iframes don't hit this (they're the FIRST client).
+        // Gated by sessionStorage so a stuck-twice state doesn't loop —
+        // if the reload doesn't recover, the user sees the corner diag
+        // and click-to-play overlay instead and we know it's a deeper
+        // issue.
+        if (!isEmbedded()) {
+            setTimeout(function () {
+                var v = document.querySelector('video')
+                if (v && v.videoWidth > 0) {
+                    sessionStorage.removeItem('sp_popout_reloaded')
+                    return
+                }
+                if (sessionStorage.getItem('sp_popout_reloaded') === '1') return
+                sessionStorage.setItem('sp_popout_reloaded', '1')
+                // Force a clean device-side respawn before the reload —
+                // covers the stale-server-survives-restart wedge where
+                // a plain page reload would hit the same wedged server.
+                console.log('[sp] pop-out has no frames after 5s, force-respawning + auto-reloading')
+                var pUdid = streamUdid
+                if (!pUdid) { try { pUdid = new URLSearchParams((location.hash || '').replace(/^#!?/, '')).get('udid') } catch (_) {} }
+                if (pUdid) {
+                    fetch('/sp-api/force-respawn', {
+                        method: 'POST', credentials: 'same-origin',
+                        headers: { 'X-SP-Serial': pUdid },
+                    }).catch(function () {}).finally(function () { setTimeout(function () { location.reload() }, 800) })
+                } else {
+                    location.reload()
+                }
+            }, 5000)
+        }
+    } else {
+        bootstrapLanding()
+        window.addEventListener('hashchange', function () {
+            if (isStreamHash()) location.reload()
+        })
+        // 2.13.0: subscribe to device-health SSE so any tile flagged
+        // for reload by the server gets its iframe refreshed without
+        // user interaction. data-serial on each tile lets us target.
+        try {
+            var _gsrc = new EventSource('/sp-api/health-events')
+            _gsrc.addEventListener('iframe_reload_hint', function (ev) {
+                try {
+                    var p = JSON.parse(ev.data)
+                    var iframe = document.querySelector('[data-serial="' + (p.serial || '') + '"] iframe')
+                    if (iframe && iframe.src) iframe.src = iframe.src.split('&_r=')[0] + '&_r=' + Date.now()
+                } catch (_) {}
+            })
+        } catch (_) { /* SSE unsupported is fine */ }
+    }
+
+    // ===== Landing mode =====
+    function bootstrapLanding() {
+        var state = { scope: null, serial: null, nicks: {}, devices: [] }
+
+        function fetchJson(url, opts) {
+            return fetch(url, Object.assign({ credentials: 'same-origin', cache: 'no-store' }, opts || {}))
+                .then(function (r) { return r.ok ? r.json() : null })
+                .catch(function () { return null })
+        }
+
+        function flash(msg, kind) {
+            var el = document.getElementById('sp-flash')
+            if (!el) return
+            el.textContent = msg
+            el.className = 'sp-flash sp-flash--visible' + (kind === 'error' ? ' sp-flash--error' : '')
+            clearTimeout(flash._t)
+            flash._t = setTimeout(function () { el.className = 'sp-flash' }, 2800)
+        }
+
+        function copy(text) {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    return navigator.clipboard.writeText(text)
+                }
+            } catch (_) {}
+            return new Promise(function (resolve, reject) {
+                var ta = document.createElement('textarea')
+                ta.value = text
+                ta.style.position = 'fixed'; ta.style.opacity = '0'
+                document.body.appendChild(ta); ta.select()
+                try { document.execCommand('copy'); resolve() } catch (e) { reject(e) }
+                document.body.removeChild(ta)
+            })
+        }
+
+        // Build the device-side WebSocket URL ws-scrcpy needs to reach the
+        // scrcpy-server on the phone. This mirrors ws-scrcpy's own
+        // DeviceTracker.createUrl(): action=proxy-adb tells the ws-scrcpy
+        // server to open an adb forward to tcp:<SCRCPY_SERVER_PORT> on the
+        // device and bridge it. The URL points back at the SAME origin the
+        // browser is on (the wizard / auth-proxy / tunnel), with ws:// or
+        // wss:// chosen from the page protocol so it works behind cloudflared.
+        function deviceWsUrl(serial) {
+            var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:'
+            var origin = wsProto + '//' + location.host + location.pathname
+            var q = new URLSearchParams({
+                action: 'proxy-adb',
+                remote: 'tcp:' + SCRCPY_SERVER_PORT,
+                udid: serial,
+            })
+            return origin + '?' + q.toString()
+        }
+
+        // streamUrlFor(serial, { embed }) — build a stream URL.
+        //   embed=true  → rendered inside a master-grid tile. The query gets
+        //                 sp_embed=1 so stream mode hides ws-scrcpy's control
+        //                 toolbar (it doesn't fit a small tile and overlaps
+        //                 the video). The grid is for monitoring; control is
+        //                 done by popping a phone out to its own tab.
+        //   embed=false → popped-out full tab: keep the full control toolbar.
+        function streamUrlFor(serial, opts) {
+            // ws-scrcpy's StreamClientScrcpy REQUIRES the `ws` param — without
+            // it parseParameters() throws "Missing required parameter ws" and
+            // the stream never starts (black tile). See the block comment at
+            // the top of this script for the full root-cause writeup.
+            var params = new URLSearchParams({
+                action: 'stream',
+                udid: serial,
+                player: PREFERRED_PLAYER,
+                ws: deviceWsUrl(serial),
+            })
+            var t = currentToken()
+            var qp = new URLSearchParams()
+            if (t) qp.set('t', t)
+            if (opts && opts.embed) qp.set('sp_embed', '1')
+            var query = qp.toString() ? '?' + qp.toString() : ''
+            return location.protocol + '//' + location.host + location.pathname + query + '#!' + params.toString()
+        }
+
+        function renderHeader() {
+            var scopeEl = document.getElementById('sp-scope-chip')
+            var actions = document.getElementById('sp-header-actions')
+            if (state.scope === 'device') {
+                scopeEl.textContent = 'single-device link'
+                actions.innerHTML = ''
+            } else if (state.scope === '*') {
+                scopeEl.textContent = 'master link · full fleet'
+                actions.innerHTML = ''
+                var t = currentToken()
+                if (t) {
+                    // 2.14.5: Tailscale-first transport. The "Copy staff link
+                    // (Tailscale)" button is now the PRIMARY action (yellow,
+                    // bold, rendered first). The cloudflared quick-tunnel
+                    // link is demoted to "Public fallback link" (ghost, less
+                    // prominent), because the trycloudflare URL rotates every
+                    // wizard restart and some routers (Verizon CR1000A)
+                    // DNS-block *.trycloudflare.com.
+                    //
+                    // Tailscale button is appended FIRST below in the async
+                    // lan-links fetch; the public fallback is added after it.
+                    var url = location.protocol + '//' + location.host + location.pathname + '?t=' + encodeURIComponent(t)
+                    var pubLooksLikeTunnel = /trycloudflare\.com$|cfargotunnel\.com$/i.test(location.host)
+                    var publicBtn = null
+                    if (pubLooksLikeTunnel) {
+                        publicBtn = document.createElement('button')
+                        publicBtn.className = 'sp-btn sp-btn--ghost'
+                        publicBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Public link (fallback)'
+                        publicBtn.title = 'Cloudflared quick-tunnel URL. Rotates on wizard restart. Prefer the Tailscale link when staff are on your tailnet.'
+                        publicBtn.onclick = function () { copy(url).then(function () { flash('Public fallback link copied — rotates on restart') }) }
+                    }
+
+                    // 2.14.1: one-click diagnostics download for SaaS user
+                    // support. Hits /sp-api/diagnostic-bundle (master-token
+                    // gated) which returns a JSON dump with the debug-events
+                    // ring buffer, per-device health snapshots, scrcpy log
+                    // tails, adb forward state, and recent wizard log files.
+                    // Staff click → JSON downloads → email to support.
+                    var diagBtn = document.createElement('button')
+                    diagBtn.className = 'sp-btn sp-btn--ghost'
+                    diagBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download diagnostics'
+                    diagBtn.title = 'Download a JSON bundle with all wizard + device state for support.'
+                    diagBtn.onclick = function () {
+                        var orig = diagBtn.innerHTML
+                        diagBtn.textContent = 'Generating…'
+                        diagBtn.disabled = true
+                        var url = '/sp-api/diagnostic-bundle?t=' + encodeURIComponent(t)
+                        var a = document.createElement('a')
+                        a.href = url
+                        a.download = 'shadowphone-diagnostics-' + Date.now() + '.json'
+                        document.body.appendChild(a)
+                        a.click()
+                        document.body.removeChild(a)
+                        setTimeout(function () {
+                            diagBtn.innerHTML = orig
+                            diagBtn.disabled = false
+                            flash('Diagnostics downloaded')
+                        }, 800)
+                    }
+                    actions.appendChild(diagBtn)
+
+                    // 2.14.5: Tailscale is the PRIMARY share path. Inserted
+                    // first so it renders at the leftmost position. The
+                    // public fallback (cloudflared quick-tunnel) is appended
+                    // AFTER. If the host isn't on a tailnet at all, we
+                    // promote the public fallback to primary appearance so
+                    // the operator isn't left with no copy button.
+                    fetch('/sp-api/lan-links?t=' + encodeURIComponent(t), { credentials: 'same-origin', cache: 'no-store' })
+                        .then(function (r) { return r.ok ? r.json() : null })
+                        .then(function (j) {
+                            var ts = (j && j.links) ? j.links.find(function (l) { return l.kind === 'tailscale' }) : null
+                            if (ts) {
+                                var tsBtn = document.createElement('button')
+                                tsBtn.className = 'sp-btn sp-btn--primary'
+                                tsBtn.style.fontWeight = '700'
+                                tsBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg> Copy staff link (Tailscale)'
+                                tsBtn.title = 'Direct connection via your tailnet — stable URL across restarts, no idle timeouts, no DNS issues. Staff must be on your Tailscale net.'
+                                tsBtn.onclick = function () { copy(ts.url).then(function () { flash('Tailscale staff link copied — ' + ts.address) }) }
+                                actions.insertBefore(tsBtn, actions.firstChild)  // primary position
+                            }
+                            // Append the public fallback AFTER tailscale (or
+                            // promote it to primary styling if no tailnet).
+                            if (publicBtn) {
+                                if (!ts) {
+                                    publicBtn.className = 'sp-btn sp-btn--primary'
+                                    publicBtn.style.fontWeight = '700'
+                                    publicBtn.innerHTML = publicBtn.innerHTML.replace('Public link (fallback)', 'Copy master link')
+                                }
+                                actions.appendChild(publicBtn)
+                            }
+                        })
+                        .catch(function () {
+                            // /sp-api/lan-links failed — show public as primary.
+                            if (publicBtn) {
+                                publicBtn.className = 'sp-btn sp-btn--primary'
+                                actions.appendChild(publicBtn)
+                            }
+                        })
+                }
+            } else {
+                scopeEl.textContent = 'no auth'
+                actions.innerHTML = ''
+            }
+        }
+
+        function uploadFile(serial, file, onProgress) {
+            return new Promise(function (resolve, reject) {
+                var xhr = new XMLHttpRequest()
+                // Quick upload uses the Vanadium HTTP pipeline: the wizard
+                // hosts the file with a one-shot token, sets up adb reverse,
+                // and `am start`s the phone's default browser (Vanadium on
+                // GrapheneOS) at that URL — the phone downloads the file
+                // into the active user's Downloads, bypassing the cross-user
+                // copy adb-push otherwise needs.
+                xhr.open('POST', '/sp-api/upload-via-vanadium', true)
+                xhr.setRequestHeader('X-SP-Serial', serial)
+                xhr.setRequestHeader('X-SP-Filename', file.name)
+                xhr.setRequestHeader('Content-Type', 'application/octet-stream')
+                xhr.upload.onprogress = function (e) {
+                    if (e.lengthComputable && onProgress) onProgress(e.loaded, e.total)
+                }
+                xhr.onload = function () {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try { resolve(JSON.parse(xhr.responseText)) }
+                        catch (_) { resolve({ ok: true }) }
+                    } else {
+                        reject(new Error(xhr.responseText || ('HTTP ' + xhr.status)))
+                    }
+                }
+                xhr.onerror = function () { reject(new Error('network error')) }
+                xhr.send(file)
+            })
+        }
+
+        function buildTile(d) {
+            var nick = state.nicks[d.serial] || d.nickname || ''
+            var display = (nick && nick.trim()) ? nick.trim() : (d.model || 'Phone')
+            var modelText = (nick && nick.trim() && d.model) ? d.model : ''
+            // In-tile stream is embedded (toolbar hidden); Pop out / Manual
+            // open the non-embedded URL with the full control toolbar.
+            var streamSrc = streamUrlFor(d.serial, { embed: true })
+            var popoutSrc = streamUrlFor(d.serial)
+
+            var tile = document.createElement('div')
+            tile.className = 'sp-tile'
+
+            // Head
+            var head = document.createElement('div')
+            head.className = 'sp-tile__head'
+            var headInfo = document.createElement('div')
+            headInfo.className = 'sp-tile__head__info'
+            var name = document.createElement('h3')
+            name.className = 'sp-tile__name'
+            name.textContent = display
+            headInfo.appendChild(name)
+            if (modelText) {
+                var modelEl = document.createElement('div')
+                modelEl.className = 'sp-tile__model'
+                modelEl.textContent = modelText
+                headInfo.appendChild(modelEl)
+            }
+            var serialEl = document.createElement('div')
+            serialEl.className = 'sp-tile__serial'
+            serialEl.textContent = d.serial
+            headInfo.appendChild(serialEl)
+            head.appendChild(headInfo)
+            var status = document.createElement('span')
+            status.className = 'sp-tile__status'
+            status.innerHTML = '<span class="sp-tile__status__dot"></span>live'
+            head.appendChild(status)
+            tile.appendChild(head)
+
+            // Live stream iframe — this is what makes the master view show
+            // every device at once instead of just buttons.
+            var streamWrap = document.createElement('div')
+            streamWrap.className = 'sp-tile__stream'
+            var iframe = document.createElement('iframe')
+            iframe.src = streamSrc
+            iframe.title = 'Stream ' + display
+            // clipboard-read + write so the embedded ws-scrcpy can sync the
+            // device clipboard with the host browser in both directions
+            // (Ctrl+V into the stream pastes the host clipboard onto the
+            // phone; copying on the phone fills the host clipboard).
+            iframe.allow = 'autoplay; clipboard-write; clipboard-read'
+            iframe.setAttribute('loading', 'lazy')
+            streamWrap.appendChild(iframe)
+            tile.appendChild(streamWrap)
+
+            // Keyboard always-on: clicking anywhere on the tile (except an
+            // action button / input) focuses this device's stream iframe so
+            // subsequent keystrokes route to this phone without an extra
+            // click inside the video frame first.
+            tile.addEventListener('click', function (e) {
+                if (e.target.closest('.sp-tile__actions, button, label, input, a')) return
+                try { if (iframe.contentWindow) iframe.contentWindow.focus() } catch (_) {}
+                try { iframe.focus() } catch (_) {}
+            })
+
+            // Auto-focus the FIRST tile to finish loading so keyboard input
+            // (and Ctrl+V clipboard paste, which ws-scrcpy reads via the
+            // iframe's clipboard-read permission) routes there immediately
+            // — no "click on the tile first" friction. Only steals focus
+            // if nothing else is focused yet, so later tiles loading don't
+            // hijack the user's current selection.
+            iframe.addEventListener('load', function () {
+                var ae = document.activeElement
+                if (ae && ae !== document.body && ae !== document.documentElement) return
+                try { if (iframe.contentWindow) iframe.contentWindow.focus() } catch (_) {}
+                try { iframe.focus() } catch (_) {}
+            }, { once: true })
+
+            // VA shift-protection watchdog — CONTINUOUS.
+            //
+            // v2.12.9's watchdog was one-shot per iframe mount, so a tile
+            // that streamed cleanly for a while and THEN went black (the
+            // common pattern the user reported) never got force-respawned
+            // — the one-shot timer had already fired and bailed. This
+            // version checks every 10s for the lifetime of the tile and
+            // distinguishes two failure modes:
+            //
+            //   (a) "never-connected" — videoWidth has been 0 since
+            //       iframe load, for >15s.
+            //   (b) "stream-frozen"   — videoWidth was previously >0
+            //       (we saw frames) but currentTime hasn't advanced in
+            //       >15s (decoder is wedged or WS dropped without
+            //       reconnecting).
+            //
+            // On either condition: POST /sp-api/force-respawn (precise
+            // device-side kill of scrcpy servers bound to port 8886) +
+            // reload the iframe with a cache-buster. 30-second cooldown
+            // between respawns per tile so a still-broken state escalates
+            // to the operator instead of looping. Every watchdog firing
+            // also POSTs a client_event to /sp-api/debug-events so
+            // diagnostic dumps include the watchdog's view of each tile.
+            // 2.13.0: client-side watchdog is GONE. Recovery is driven
+            // server-side by device-health (lib/device-health.js). The
+            // master grid just reports its iframe video state so the
+            // state machine has visibility, and listens for iframe_reload_hint
+            // SSE events to know when a reload is warranted (handled
+            // at the page level, see the EventSource listener below).
+            function spReportEvent(payload) {
+                try {
+                    fetch('/sp-api/client-event', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'X-SP-Serial': d.serial, 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    }).catch(function () {})
+                } catch (_) {}
+            }
+            // Periodically report iframe video state to the server-side
+            // state machine. Reports only — no decisions made here.
+            setInterval(function () {
+                try {
+                    var v = iframe.contentDocument && iframe.contentDocument.querySelector('video')
+                    if (!v) return
+                    spReportEvent({
+                        type: 'watchdog_tick',
+                        width: v.videoWidth, height: v.videoHeight,
+                        ct: v.currentTime, paused: v.paused, ready: v.readyState,
+                    })
+                } catch (_) {}
+            }, 10000)
+            // Tag the tile element so SSE iframe_reload_hint can target it.
+            tile.setAttribute('data-serial', d.serial)
+
+            // Actions
+            var actions = document.createElement('div')
+            actions.className = 'sp-tile__actions'
+
+            // Pop out — full tab with ws-scrcpy's control toolbar. Use a
+            // real <a target="_blank"> instead of window.open(): browsers
+            // honour anchor-click activation, give the new tab a clean
+            // top-level navigation, and don't interpret the windowFeatures
+            // string as "popup window" (which strips autoplay activation and
+            // shows the page in a chromeless popup in some browsers — that
+            // looked like a black tile because the muted video element was
+            // present but paused).
+            var popBtn = document.createElement('a')
+            popBtn.className = 'sp-btn sp-btn--primary'
+            popBtn.textContent = 'Pop out'
+            popBtn.href = popoutSrc
+            popBtn.target = '_blank'
+            popBtn.rel = 'noopener noreferrer'
+            actions.appendChild(popBtn)
+
+            // Copy VA link — request a per-device-scoped token via
+            // /sp-api/issue-device-token, build the device-only URL, and
+            // write it to the clipboard. A VA who opens it sees only this
+            // phone (every other device row is filtered out, and WS
+            // upgrades that reference other udids are rejected).
+            var vaBtn = document.createElement('button')
+            vaBtn.className = 'sp-btn sp-btn--ghost'
+            vaBtn.textContent = 'Copy VA link'
+            vaBtn.title = 'Copy a per-device link — opens only this phone, safe to send to a VA'
+            vaBtn.onclick = function () {
+                vaBtn.textContent = '…'
+                fetch('/sp-api/issue-device-token', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({ serial: d.serial, label: 'va-' + (d.serial || '').slice(0, 8) }),
+                }).then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('http ' + r.status)) })
+                  .then(function (j) {
+                      var url = location.protocol + '//' + location.host + location.pathname + '?t=' + encodeURIComponent(j.token)
+                      if (navigator.clipboard && navigator.clipboard.writeText) {
+                          return navigator.clipboard.writeText(url).then(function () { return url })
+                      }
+                      // Fallback for older browsers: prompt
+                      window.prompt('Per-device link for ' + (nick || d.serial), url)
+                      return url
+                  })
+                  .then(function () { vaBtn.textContent = 'Copied ✓' })
+                  .catch(function (e) { vaBtn.textContent = 'Failed'; console.error('[sp] va-link issue', e) })
+                  .finally(function () { setTimeout(function () { vaBtn.textContent = 'Copy VA link' }, 2500) })
+            }
+            actions.appendChild(vaBtn)
+
+            // Upload — file picker → POST /sp-api/upload-to-device → adb push
+            var uploadLabel = document.createElement('label')
+            uploadLabel.className = 'sp-btn sp-btn--ghost'
+            uploadLabel.style.cursor = 'pointer'
+            uploadLabel.textContent = 'Upload'
+            uploadLabel.title = 'Push a file into /sdcard/Download on this phone'
+            var uploadInput = document.createElement('input')
+            uploadInput.type = 'file'
+            uploadInput.className = 'sp-upload-input'
+            uploadInput.onchange = function () {
+                var file = uploadInput.files && uploadInput.files[0]
+                if (!file) return
+                uploadLabel.textContent = 'Uploading… 0%'
+                uploadLabel.style.pointerEvents = 'none'
+                uploadFile(d.serial, file, function (loaded, total) {
+                    var pct = Math.round((loaded / total) * 100)
+                    uploadLabel.textContent = 'Uploading… ' + pct + '%'
+                }).then(function (resp) {
+                    if (resp && resp.ok) {
+                        uploadLabel.textContent = 'Uploaded ✓'
+                        var userLabel = resp.user && resp.user !== '0' ? ' (user ' + resp.user + ')' : ''
+                        flash('Pushed ' + file.name + ' → ' + (resp.remote || '/sdcard/Download/') + userLabel)
+                    } else {
+                        uploadLabel.textContent = 'Upload failed'
+                        flash((resp && resp.error) || 'Upload failed', 'error')
+                    }
+                }).catch(function (e) {
+                    uploadLabel.textContent = 'Upload failed'
+                    flash('Upload failed: ' + (e && e.message || e), 'error')
+                }).then(function () {
+                    setTimeout(function () {
+                        uploadLabel.textContent = 'Upload'
+                        uploadLabel.style.pointerEvents = ''
+                        uploadInput.value = ''
+                    }, 2200)
+                })
+            }
+            uploadLabel.appendChild(uploadInput)
+            actions.appendChild(uploadLabel)
+
+            // Master-only: copy a single-device link for this phone
+            if (state.scope === '*') {
+                var linkBtn = document.createElement('button')
+                linkBtn.className = 'sp-btn sp-btn--ghost'
+                linkBtn.title = 'Copy a one-device link to share with a single VA'
+                linkBtn.textContent = 'Copy link'
+                linkBtn.onclick = function () {
+                    var labelHint = (nick && nick.trim()) ? nick.trim() : (d.model || '')
+                    linkBtn.disabled = true
+                    fetch('/sp-api/issue-device-token', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({ serial: d.serial, label: labelHint }),
+                    }).then(function (r) { return r.ok ? r.json() : null })
+                        .then(function (j) {
+                            linkBtn.disabled = false
+                            if (!j || !j.token) { flash('Failed to issue link', 'error'); return }
+                            var url = location.protocol + '//' + location.host + location.pathname + '?t=' + j.token
+                            copy(url).then(function () { flash('Device link copied — VA can only see this phone') })
+                        })
+                        .catch(function () { linkBtn.disabled = false; flash('Failed to issue link', 'error') })
+                }
+                actions.appendChild(linkBtn)
+            }
+
+            // Fullscreen — requests fullscreen on the stream container.
+            // Only added when the Fullscreen API is available.
+            if (document.documentElement.requestFullscreen) {
+                var fsBtn = document.createElement('button')
+                fsBtn.className = 'sp-btn sp-btn--ghost'
+                fsBtn.title = 'Enter fullscreen (Esc to exit)'
+                fsBtn.textContent = 'Fullscreen'
+                fsBtn.onclick = function () {
+                    try { streamWrap.requestFullscreen() } catch (_) {}
+                }
+                actions.appendChild(fsBtn)
+            }
+
+            // Reload — reconnects just this tile's stream by resetting the
+            // iframe src, so a dropped stream can be recovered without
+            // reloading the whole portal.
+            var reloadBtn = document.createElement('button')
+            reloadBtn.className = 'sp-btn sp-btn--ghost'
+            reloadBtn.title = 'Reconnect this stream without reloading the portal'
+            reloadBtn.textContent = 'Reload'
+            reloadBtn.onclick = function () {
+                iframe.src = iframe.src
+                flash('Stream reconnecting…')
+            }
+            actions.appendChild(reloadBtn)
+
+            tile.appendChild(actions)
+            return tile
+        }
+
+        // Compute the visible device list for the current scope.
+        function visibleDevices() {
+            var devs = state.devices
+            if (state.scope === 'device' && state.serial) {
+                devs = devs.filter(function (d) { return d.serial === state.serial })
+                if (devs.length === 0) devs = [{ serial: state.serial, model: '', nickname: state.nicks[state.serial] || null }]
+            }
+            return devs
+        }
+
+        // MULTI-DEVICE ROOT CAUSE (fixed here):
+        //   The previous renderGrid() did `grid.innerHTML = ''` on every 10s
+        //   poll and then re-appended the (reused) tile nodes. Detaching and
+        //   re-inserting an <iframe> forces the browser to RELOAD it — so
+        //   every stream restarted from scratch every 10 seconds. With one
+        //   phone that mostly recovered within the window; with several
+        //   phones the simultaneous re-negotiations (adb push + forward + WS
+        //   handshake per device, all serialized through adb) could not all
+        //   finish before the next wipe, so only the fastest phone ever
+        //   showed a picture and the rest stayed black.
+        //
+        //   renderGrid() now reconciles the grid IN PLACE: existing tiles are
+        //   never detached, only genuinely-new devices get a fresh tile, and
+        //   only departed devices are removed. A surviving tile's <iframe> is
+        //   left exactly where it is, so its stream is never interrupted.
+        function renderGrid() {
+            var grid = document.getElementById('sp-grid')
+            var count = document.getElementById('sp-conn-count')
+            var devs = visibleDevices()
+            count.textContent = devs.length + ' ' + (devs.length === 1 ? 'phone connected' : 'phones connected')
+            grid.className = 'sp-grid' + (devs.length === 1 ? ' sp-grid--solo' : '')
+
+            // Index the tiles currently in the DOM by serial.
+            var existing = {}
+            Array.from(grid.querySelectorAll('.sp-tile')).forEach(function (t) {
+                if (t.dataset.spSerial) existing[t.dataset.spSerial] = t
+            })
+
+            if (devs.length === 0) {
+                // Drop any tiles + show the empty state. innerHTML is safe
+                // here precisely because there are no streams to preserve.
+                grid.innerHTML = '<div class="sp-empty">No phones detected. Make sure phones are plugged into the operator’s computer with USB debugging on.</div>'
+                return
+            }
+            // A leftover empty-state node is not a tile — clear it once.
+            var emptyEl = grid.querySelector('.sp-empty')
+            if (emptyEl) grid.removeChild(emptyEl)
+
+            // Remove tiles for devices that are gone.
+            var wantedSerials = {}
+            devs.forEach(function (d) { wantedSerials[d.serial] = true })
+            Object.keys(existing).forEach(function (serial) {
+                if (!wantedSerials[serial]) {
+                    grid.removeChild(existing[serial])
+                    delete existing[serial]
+                }
+            })
+
+            // Ensure a tile exists for every device, in order, WITHOUT
+            // detaching any survivor (which would reload its iframe).
+            devs.forEach(function (d, i) {
+                var t = existing[d.serial]
+                if (!t) {
+                    t = buildTile(d)
+                    t.dataset.spSerial = d.serial
+                }
+                // Place the tile at slot i. appendChild/insertBefore on a node
+                // that is already the correct child is a no-op move and does
+                // NOT reload a contained iframe; only removal from the
+                // document tree does. We only ever move a tile to a later
+                // slot relative to its current siblings, never out of the doc.
+                var atSlot = grid.children[i]
+                if (atSlot !== t) {
+                    grid.insertBefore(t, atSlot || null)
+                }
+            })
+        }
+
+        // Has the visible device SET changed since the last render? Compares
+        // sorted serials so a pure metadata refresh (same phones) does not
+        // even call renderGrid().
+        var lastRenderedKey = null
+        function deviceSetKey() {
+            return visibleDevices().map(function (d) { return d.serial }).sort().join('|')
+        }
+
+        function refresh() {
+            Promise.all([
+                fetchJson('/sp-api/devices'),
+                fetchJson('/sp-api/nicknames'),
+            ]).then(function (results) {
+                var d = results[0], n = results[1]
+                if (d && Array.isArray(d.devices)) state.devices = d.devices
+                if (n && typeof n === 'object') state.nicks = n
+                renderHeader()
+                // Only touch the grid when the set of phones actually changed
+                // (plug-in / unplug). Re-rendering on every poll is pointless
+                // work and risks disturbing live tiles.
+                var key = deviceSetKey()
+                if (key !== lastRenderedKey) {
+                    lastRenderedKey = key
+                    renderGrid()
+                }
+            })
+        }
+
+        fetchJson('/sp-api/token-info').then(function (info) {
+            if (info) {
+                state.scope = info.scope || null
+                state.serial = info.serial || null
+            }
+            renderHeader()
+            // First paint: render unconditionally.
+            lastRenderedKey = deviceSetKey()
+            renderGrid()
+            refresh()
+        })
+        // Poll for plugged-in / unplugged phones. This is now cheap and
+        // non-destructive: it only rebuilds the grid when the device SET
+        // changes, and even then never detaches a surviving tile's iframe.
+        setInterval(refresh, 10000)
+    }
+})()
+</script>
+</body>
+</html>

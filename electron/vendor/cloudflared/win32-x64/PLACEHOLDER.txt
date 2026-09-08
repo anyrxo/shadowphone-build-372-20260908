@@ -1,0 +1,10 @@
+Drop `cloudflared.exe` here.
+
+Source: https://github.com/cloudflare/cloudflared/releases (download
+"cloudflared-windows-amd64.exe" and rename to cloudflared.exe).
+
+License: Apache-2.0. The binary is safe to bundle with ShadowPhone.
+
+This placeholder exists so git keeps the folder. Delete after dropping
+the binary, OR keep — `resolveCloudflaredPath()` only matches the
+exact `cloudflared.exe` filename.

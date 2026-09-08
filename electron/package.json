@@ -1,0 +1,218 @@
+{
+  "name": "shadowphone-desktop",
+  "version": "3.7.2",
+  "description": "ShadowPhone Desktop - Phone Farm Automation",
+  "main": "main.js",
+  "author": "ShadowPhone",
+  "license": "MIT",
+  "homepage": "https://shadowphone.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shadowphone/desktop"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "npx electron .",
+    "build:dashboard": "vite build --config dashboard-src/vite.config.ts",
+    "test:dashboard": "vitest run --config dashboard-src/vitest.config.ts",
+    "prebuild": "npm run build:dashboard",
+    "build": "electron-builder",
+    "prebuild:win": "npm run build:dashboard",
+    "prebuild:mac": "npm run build:dashboard",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder -mwl",
+    "images": "node create-installer-images.js",
+    "release": "npm run e2e && npm run build && node upload-resumable.js",
+    "e2e": "node scripts/e2e-stream-test.js",
+    "upload": "node upload-resumable.js"
+  },
+  "build": {
+    "appId": "io.shadowphone.desktop",
+    "productName": "ShadowPhone",
+    "copyright": "Copyright © 2026 ShadowPhone",
+    "icon": "assets/icon.png",
+    "asar": true,
+    "asarUnpack": [
+      "assets/icon.png"
+    ],
+    "beforePack": "./scripts/check-brain-fresh.js",
+    "afterPack": "./afterPack.js",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "mirror-toolbar-preload.js",
+      "mirror-toolbar.html",
+      "shared.css",
+      "fleet-panel.html",
+      "fleet-panel-preload.js",
+      "models-dashboard.html",
+      "renderer/**/*",
+      "lib/**/*.js",
+      "lib/portal-viewer/**/*",
+      "handlers/**/*.js",
+      "assets/icon.png",
+      "assets/icon-mac.png",
+      "assets/app-icons/**/*",
+      "!**/*.env",
+      "!**/.env",
+      "!**/.env.*",
+      "!**/upload-*.js",
+      "!**/test-*.js",
+      "!**/create-installer-images.js",
+      "!**/build-*.sh",
+      "!**/build-log.txt",
+      "!**/upload-log.txt",
+      "!**/node_modules/.cache/**"
+    ],
+    "extraResources": [
+      {
+        "from": "python",
+        "to": "python",
+        "filter": [
+          "**/*",
+          "!__pycache__/**",
+          "!**/__pycache__/**",
+          "!**/*.pyc",
+          "!**/.pytest_cache/**",
+          "!.build-venv/**",
+          "!build/**",
+          "!dist/**",
+          "!config/**",
+          "!defaults/profile_settings.json",
+          "!modules/usernames.txt",
+          "!modules/defaults/repost_accounts.txt",
+          "!**/.env",
+          "!**/.env.*",
+          "!**/.DS_Store"
+        ]
+      },
+      {
+        "from": "vendor/cloudflared",
+        "to": "cloudflared",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "python-bundle",
+        "to": "python-brain",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "vendor/ws-scrcpy/dist/public",
+        "to": "ws-scrcpy/dist/public",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "vendor/ws-scrcpy/dist/vendor",
+        "to": "ws-scrcpy/dist/vendor",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "vendor/companion",
+        "to": "vendor/companion",
+        "filter": [
+          "**/*.apk"
+        ]
+      },
+      {
+        "from": "vendor/helpers",
+        "to": "helpers",
+        "filter": [
+          "ADBKeyboard.apk"
+        ]
+      }
+    ],
+    "extraFiles": [],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "identity": null,
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "extendInfo": {
+        "NSLocalNetworkUsageDescription": "ShadowPhone exposes USB-connected phones to your own VPS over your private Tailscale network."
+      },
+      "icon": "assets/icon-mac.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "artifactName": "ShadowPhone-Setup-${version}-windows.${ext}",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ShadowPhone",
+      "runAfterFinish": true,
+      "installerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "installerSidebar": "assets/installerSidebar.bmp"
+    },
+    "linux": {
+      "category": "Utility",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "shadowphone",
+      "repo": "desktop"
+    }
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "dotenv": "^16.6.1",
+    "electron-updater": "^6.1.7",
+    "form-data": "^4.0.5",
+    "js-yaml": "^4.1.1",
+    "koffi": "^3.0.1",
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "electron": "^40.1.0",
+    "electron-builder": "^26.7.0",
+    "png-to-ico": "^3.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.34.5",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "vitest": "^4.1.8"
+  }
+}

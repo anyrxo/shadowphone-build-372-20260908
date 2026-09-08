@@ -1,0 +1,76 @@
+name: Build isolated unsigned macOS artifacts
+on:
+  workflow_dispatch:
+    inputs:
+      source_manifest_sha256:
+        description: SHA-256 of the reviewed build-source-manifest.json
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: isolated-mac-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15-intel
+            arch: x64
+          - runner: macos-15
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      EXPECTED_MANIFEST_SHA256: ${{ inputs.source_manifest_sha256 }}
+      TARGET_ARCH: ${{ matrix.arch }}
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          architecture: ${{ matrix.arch }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: ${{ matrix.arch }}
+      - name: Verify exact clean source and native architecture
+        run: python .github/scripts/verify-mac-build.py source
+      - name: Install locked dependencies and build dashboard
+        working-directory: electron
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build:dashboard
+      - name: Freeze native Python Brain
+        working-directory: electron/python
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          python -m pip install -r requirements.txt
+          python -m pip install pyinstaller
+          pyinstaller --clean --noconfirm server.spec
+          mkdir -p ../python-bundle
+          cp -R dist/server ../python-bundle/server
+          chmod +x ../python-bundle/server/server
+          node ../scripts/check-brain-fresh.js --write
+          node ../scripts/check-brain-fresh.js
+      - name: Build only the matching native DMG
+        working-directory: electron
+        run: npx --no-install electron-builder --mac --${TARGET_ARCH} --publish never --config.artifactName='ShadowPhone-${version}-${arch}.${ext}'
+      - name: Verify packaged Brain, signature and DMG
+        run: python .github/scripts/verify-mac-build.py artifact
+      - name: Store artifacts for separate reviewed publication
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadowphone-macos-${{ matrix.arch }}
+          path: |
+            electron/dist/ShadowPhone-*-${{ matrix.arch }}.dmg
+            electron/dist/mac-build-${{ matrix.arch }}.json
+          if-no-files-found: error
+          retention-days: 7

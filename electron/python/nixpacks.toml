@@ -1,0 +1,22 @@
+# Nixpacks configuration for Railway
+# Python detected automatically from requirements.txt
+# Add system dependencies for video processing
+
+[phases.setup]
+# python311 must be included when using nixPkgs (overrides auto-detection)
+# deno required for yt-dlp YouTube extraction (default JavaScript runtime)
+# yt-dlp installed as nix binary — NOT via pip (saves ~100-150MB Python RAM)
+nixPkgs = ["python311", "python311Packages.pip", "deno", "yt-dlp"]
+aptPkgs = ["ffmpeg", "libimage-exiftool-perl", "fontconfig", "fonts-dejavu-core", "fonts-noto-color-emoji"]
+
+# yt-dlp: nix binary (called via subprocess, NOT imported as Python module)
+# deno: nix package (auto-detected by yt-dlp for YouTube extraction)
+# ffmpeg/exiftool: apt packages for media processing
+# fonts-dejavu-core      -> /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf
+#                           (Spoofer templater caption text font; PIL ImageFont.truetype
+#                            + ffmpeg drawtext fallback both need a real .ttf on disk)
+# fonts-noto-color-emoji -> /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf
+#                           (PIL embedded_color color-emoji glyphs in render_caption_png;
+#                            drawtext can't draw color emoji -> tofu without this)
+# fontconfig: fc-cache + font lookup so the installed .ttf files are registered
+

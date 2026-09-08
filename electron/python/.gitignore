@@ -1,0 +1,7 @@
+# PyInstaller build artifacts produced by electron/scripts/build-python-brain.ps1.
+# The frozen output is committed at electron/python-bundle/server.exe; these
+# intermediate dirs are throwaway and must never land in git.
+.build-venv/
+build/
+dist/
+*.spec.bak

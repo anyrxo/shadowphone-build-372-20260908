@@ -1,0 +1,1578 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;">
+<title>ShadowPhone Fleet</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+    /* ─── fleet-panel — LAYOUT ONLY ─────────────────────────────────────
+       Component primitives live in shared.css. This block adds the rules
+       unique to the Fleet window: topbar, action bar, scrollable phone
+       list, phone-card row, the multi-step wizard's step rail.
+    ────────────────────────────────────────────────────────────────────── */
+    html, body {
+        background:
+            radial-gradient(120% 70% at 50% -8%, #131313 0%, transparent 55%),
+            var(--bg);
+        font-size: 13px;
+        overflow: hidden;
+    }
+    .app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* ── Topbar ──────────────────────────────────────────────────────── */
+    .topbar {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 20px 13px;
+        background: linear-gradient(180deg, #161616 0%, #0e0e0e 100%);
+        border-bottom: 1px solid var(--border);
+        -webkit-app-region: drag;
+        position: relative;
+    }
+    .topbar::after {
+        content: ""; position: absolute; left: 0; right: 0; top: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(250,204,21,0.45), transparent);
+        opacity: 0.5;
+    }
+    .topbar h1 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        font-family: var(--font-d);
+        display: flex; align-items: center; gap: 9px;
+    }
+    .topbar h1::before {
+        content: "";
+        width: 18px; height: 18px;
+        border-radius: 5px;
+        background: radial-gradient(circle at 30% 30%, var(--brand) 0%, #b45309 70%, #000 100%);
+        box-shadow: 0 0 0 1px var(--brand-stroke), 0 0 12px var(--brand-glow);
+        flex-shrink: 0;
+    }
+    .topbar h1 .sep   { color: var(--text-tertiary); font-weight: 400; margin: 0 3px; }
+    .topbar h1 .crumb { color: var(--text-dim);     font-weight: 500; }
+    .topbar .ts {
+        font-size: 11px;
+        color: var(--text-dim);
+        margin-left: auto;
+        -webkit-app-region: no-drag;
+        cursor: pointer;
+        display: flex; align-items: center; gap: 7px;
+        padding: 5px 11px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: linear-gradient(180deg, var(--surface-2), var(--surface));
+        transition: border-color var(--t-norm), color var(--t-norm), background var(--t-norm);
+        font-family: var(--font-m);
+        letter-spacing: 0.02em;
+    }
+    .topbar .ts .dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--text-tertiary);
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.02);
+    }
+    .topbar .ts.ok  .dot { background: var(--success);     box-shadow: 0 0 0 2px var(--success-glow), 0 0 8px var(--success-stroke); }
+    .topbar .ts.off .dot { background: var(--destructive); box-shadow: 0 0 0 2px var(--danger-glow),  0 0 8px var(--danger-stroke); }
+    .topbar .ts:hover { color: var(--text); border-color: var(--border-focus); }
+
+    /* ── Action bar ──────────────────────────────────────────────────── */
+    .actionbar {
+        display: flex; gap: 8px;
+        padding: 11px 20px;
+        background: linear-gradient(180deg, #0c0c0c 0%, #0a0a0a 100%);
+        border-bottom: 1px solid var(--border);
+    }
+    .actionbar .btn { height: 32px; padding: 0 14px; font-size: 12px; }
+    .actionbar .btn svg.ico { width: 14px; height: 14px; }
+
+    /* ── Phone list ──────────────────────────────────────────────────── */
+    .list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 14px 20px 22px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-hot) transparent;
+    }
+    .list::-webkit-scrollbar { width: 5px; }
+    .list::-webkit-scrollbar-thumb { background: var(--border-hot); border-radius: 4px; }
+
+    .empty {
+        padding: 56px 0;
+        text-align: center;
+        color: var(--text-tertiary);
+        font-size: 12px;
+        font-family: var(--font-m);
+        letter-spacing: 0.02em;
+        animation: spcRise 220ms var(--ease-out) both;
+    }
+    .empty::before {
+        content: "";
+        display: block;
+        width: 56px; height: 56px;
+        margin: 0 auto 18px;
+        border-radius: 18px;
+        background:
+            radial-gradient(circle at 50% 50%, rgba(250,204,21,0.06) 0%, transparent 70%),
+            linear-gradient(180deg, var(--surface-2), var(--surface));
+        border: 1px solid var(--border-hot);
+        position: relative;
+    }
+    .empty::after {
+        content: "";
+        width: 18px; height: 28px;
+        position: relative; top: -42px;
+        display: block; margin: 0 auto;
+        border: 1.4px solid var(--text-tertiary);
+        border-radius: 4px;
+        opacity: 0.7;
+    }
+
+    .phone {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 13px 16px;
+        background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--r-card);
+        margin-bottom: 9px;
+        position: relative;
+        transition: border-color var(--t-norm), background var(--t-norm);
+        box-shadow: var(--shadow-card);
+        animation: spcRise var(--t-slow) var(--ease-out) both;
+    }
+    .list .phone:nth-child(1) { animation-delay:  30ms; }
+    .list .phone:nth-child(2) { animation-delay:  60ms; }
+    .list .phone:nth-child(3) { animation-delay:  90ms; }
+    .list .phone:nth-child(4) { animation-delay: 120ms; }
+    .list .phone:nth-child(5) { animation-delay: 150ms; }
+    .list .phone:nth-child(6) { animation-delay: 180ms; }
+    .list .phone:nth-child(n+7) { animation-delay: 210ms; }
+    .phone:hover {
+        border-color: var(--border-focus);
+        background: linear-gradient(180deg, var(--surface-hi) 0%, var(--surface-2) 100%);
+    }
+    .phone::before {
+        content: "";
+        position: absolute; left: 0; top: 14px; bottom: 14px;
+        width: 2px;
+        border-radius: 0 2px 2px 0;
+        background: var(--text-tertiary);
+        transition: background var(--t-slow), box-shadow var(--t-slow);
+    }
+    .phone.online::before { background: var(--success); box-shadow: 0 0 8px var(--success-stroke); }
+    .phone.offline::before, .phone.usb-only::before { background: var(--text-tertiary); }
+    .phone .dot {
+        width: 9px; height: 9px; border-radius: 50%;
+        background: var(--text-tertiary);
+        flex-shrink: 0;
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.02);
+        transition: background var(--t-slow), box-shadow var(--t-slow);
+    }
+    .phone.online  .dot { background: var(--success); box-shadow: 0 0 0 3px var(--success-glow), 0 0 8px var(--success-stroke); }
+    .phone.offline .dot { background: var(--text-tertiary); }
+    .phone .info { flex: 1; min-width: 0; }
+    .phone .name {
+        font-size: 13.5px;
+        font-weight: 600;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        font-family: var(--font-d);
+        letter-spacing: -0.01em;
+    }
+    .phone .meta {
+        font-size: 11px;
+        color: var(--text-dim);
+        margin-top: 3px;
+        font-family: var(--font-m);
+        letter-spacing: 0.02em;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .phone .transport {
+        margin-top: 5px;
+        font-size: 10.5px;
+        color: var(--success);
+        font-family: var(--font-m);
+        letter-spacing: 0.03em;
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 1px 9px 1px 7px;
+        border-radius: 999px;
+        background: var(--success-glow);
+        border: 1px solid var(--success-stroke);
+    }
+    .phone .transport::before {
+        content: "";
+        width: 5px; height: 5px; border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 4px var(--success-stroke);
+    }
+    .phone.usb-only .transport {
+        color: var(--text-tertiary);
+        background: rgba(110,110,110,0.08);
+        border-color: var(--border-hot);
+    }
+    .phone.usb-only .transport::before { background: var(--text-tertiary); box-shadow: none; }
+    .phone .actions { display: flex; gap: 7px; flex-shrink: 0; }
+    .phone .actions .btn { height: 30px; padding: 0 16px; font-size: 11.5px; }
+
+    /* ── Wizard step rail ────────────────────────────────────────────── */
+    /* Tight 460-px modal that's specific to fleet-panel (toolbar's modal
+       is narrower — see shared.css default + the toolbar override). */
+    .modal-bg .modal { max-width: 480px; }
+
+    /* Sticky action bar inside the wizard modal */
+    #addModal .modal .actions,
+    #diagModal .modal .actions,
+    #troubleModal .modal .actions {
+        position: sticky;
+        bottom: -18px;
+        background: linear-gradient(180deg, transparent 0%, #141414 30%);
+        padding: 14px 0 4px;
+        margin-top: 14px;
+        border-top: 1px solid var(--border);
+        z-index: 2;
+    }
+    .modal .actions .btn { height: 32px; padding: 0 16px; font-size: 12px; }
+
+    /* Step rail entries */
+    .step {
+        display: flex; gap: 14px;
+        padding: 14px 0 14px 4px;
+        align-items: flex-start;
+        position: relative;
+    }
+    .step::before {
+        content: "";
+        position: absolute;
+        left: 14px;
+        top: 38px;
+        bottom: -10px;
+        width: 1px;
+        background: repeating-linear-gradient(180deg,
+            var(--border-hot) 0 4px, transparent 4px 8px);
+        opacity: 0.8;
+    }
+    .step:last-of-type::before { display: none; }
+    .step.done::before { background: var(--success); opacity: 0.45; }
+    .step .num {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, var(--surface-2), var(--surface));
+        color: var(--text-dim);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11.5px; font-weight: 600;
+        flex-shrink: 0;
+        border: 1px solid var(--border-hot);
+        font-family: var(--font-m);
+        position: relative;
+        z-index: 1;
+        box-shadow:
+            0 1px 0 rgba(255,255,255,0.04) inset,
+            0 0 0 3px var(--bg);
+        transition: background var(--t-slow), color var(--t-slow), border-color var(--t-slow), box-shadow var(--t-slow);
+    }
+    .step.active .num {
+        background: linear-gradient(180deg, var(--brand) 0%, var(--brand-deep) 100%);
+        color: #000;
+        border-color: var(--brand);
+        box-shadow:
+            0 0 0 3px var(--bg),
+            0 0 0 4px var(--brand-stroke),
+            0 0 14px var(--brand-glow);
+    }
+    .step.active .num::after {
+        content: ""; position: absolute; inset: -8px;
+        border-radius: 50%;
+        border: 1px solid var(--brand-stroke);
+        animation: spcStepPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes spcStepPulse {
+        0%, 100% { opacity: 0.5; transform: scale(0.92); }
+        50%      { opacity: 0;   transform: scale(1.12); }
+    }
+    .step.done .num {
+        background: linear-gradient(180deg, var(--success) 0%, var(--success-deep) 100%);
+        color: #000; border-color: var(--success);
+        box-shadow: 0 0 0 3px var(--bg), 0 0 8px var(--success-stroke);
+    }
+    .step.error .num {
+        background: linear-gradient(180deg, var(--destructive) 0%, var(--danger-deep) 100%);
+        color: #fff; border-color: var(--destructive);
+        box-shadow: 0 0 0 3px var(--bg), 0 0 10px var(--danger-stroke);
+    }
+    .step .body { flex: 1; min-width: 0; padding-top: 3px; }
+    .step .title {
+        font-size: 13px;
+        font-weight: 600;
+        font-family: var(--font-d);
+        letter-spacing: -0.01em;
+    }
+    .step.active .title { color: var(--text); }
+    .step .detail {
+        font-size: 11.5px;
+        color: var(--text-dim);
+        margin-top: 5px;
+        line-height: 1.55;
+    }
+    .step .detail strong { color: var(--text); font-weight: 600; }
+    .step .detail em     { color: var(--brand); font-style: normal; font-weight: 500; }
+    .step .detail .mono  { font-family: var(--font-m); color: var(--brand); letter-spacing: 0.02em; }
+    .step .detail a      { color: var(--info); }
+    .step .detail .btn {
+        height: 24px !important;
+        padding: 0 9px !important;
+        font-size: 10.5px !important;
+        font-family: var(--font-m);
+        letter-spacing: 0.02em;
+    }
+    /* Heads-up "before you start" step + final success step get coloured cards */
+    #s0 { border: 1px solid rgba(250,204,21,0.18); background: rgba(250,204,21,0.025); border-radius: 8px; padding: 12px 14px 14px; }
+    #s0::before { display: none; }
+    #s7 { border: 1px solid rgba(74,222,128,0.18); background: rgba(74,222,128,0.025); border-radius: 8px; padding: 12px 14px 14px; }
+    #s7::before { display: none; }
+
+    /* Pulsing dot animation used by #authWaitModal h2 */
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(1.3);} }
+
+    /* ── F4: keyboard-selectable rows + mirror-status pip ──────────────── */
+    .phone.selected {
+        border-color: var(--brand-stroke);
+        box-shadow: 0 0 0 1px var(--brand-stroke), 0 0 14px var(--brand-glow);
+        background: linear-gradient(180deg, var(--surface-hi) 0%, var(--surface-2) 100%);
+    }
+    .phone .spc-chip { margin-top: 5px; }
+    .kbd-hint {
+        display: flex; align-items: center; gap: 10px;
+        margin-left: auto;
+        font-size: 10.5px;
+        color: var(--text-tertiary);
+        font-family: var(--font-m);
+        letter-spacing: 0.02em;
+    }
+    .kbd-hint kbd {
+        display: inline-block;
+        padding: 1px 5px;
+        border: 1px solid var(--border-hot);
+        border-radius: 4px;
+        background: linear-gradient(180deg, var(--surface-2), var(--surface));
+        font-family: var(--font-m);
+        color: var(--text-dim);
+    }
+</style>
+</head>
+<body>
+    <!-- ──────────────── Shared SVG icon sprite (Lucide-derived) ──────────────── -->
+    <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <symbol id="i-plus"  viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+        <symbol id="i-grid"  viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+        <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+        <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 1 0-1.5-8.74A6 6 0 0 0 4 12a5 5 0 0 0 2 9.5"/><polyline points="8 17 12 13 16 17"/><line x1="12" y1="13" x2="12" y2="21"/></symbol>
+        <symbol id="i-stetho" viewBox="0 0 24 24"><path d="M4 3v8a5 5 0 0 0 10 0V3"/><circle cx="18" cy="15" r="3"/><path d="M9 16v3a3 3 0 0 0 6 0"/></symbol>
+        <symbol id="i-play"  viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/></symbol>
+        <symbol id="i-help"  viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4.5 1.5c-.8.5-2 .9-2 2.5"/><line x1="12" y1="17" x2="12" y2="17"/></symbol>
+        <symbol id="i-x"     viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+    </svg>
+
+<div class="app">
+    <div class="topbar">
+        <h1>ShadowPhone<span class="sep">/</span><span class="crumb">Fleet</span></h1>
+        <div class="ts" id="tsBadge"><span class="dot"></span><span id="tsLabel">checking…</span></div>
+    </div>
+
+    <div class="actionbar">
+        <button class="btn brand" id="addPhone"><svg class="ico"><use href="#i-plus"/></svg>Add Phone</button>
+        <button class="btn brand" id="commandCenter" title="Universal Command Center — schedule, accounts, content folders &amp; scans across ALL phones">&#128197; Schedule</button>
+        <button class="btn" id="tileAll"><svg class="ico"><use href="#i-grid"/></svg>Tile All</button>
+        <button class="btn" id="refresh"><svg class="ico"><use href="#i-refresh"/></svg>Refresh</button>
+        <button class="btn" id="cloudSync" title="Pull team data from cloud — scaffolds phones / profiles / accounts / captions locally"><svg class="ico"><use href="#i-cloud"/></svg>Sync</button>
+        <button class="btn" id="diagnose" title="Run self-diagnostic — collects everything support needs to triage"><svg class="ico"><use href="#i-stetho"/></svg>Diagnose</button>
+        <button class="btn" id="openSettings" title="App settings — smspool API key, etc.">Settings</button>
+        <button class="btn" id="openPlugins" title="Run a plugin command (scrcpy or a custom script) against a specific phone">Plugins</button>
+        <div class="kbd-hint"><span><kbd>j</kbd>/<kbd>k</kbd> select</span><span><kbd>&#8629;</kbd> launch</span><span><kbd>esc</kbd> close</span></div>
+    </div>
+
+    <!-- 2.18.13: Settings modal — smspool API key for phone-only IG signup -->
+    <div class="modal-bg" id="settingsModal">
+        <div class="modal" style="max-width: 520px;">
+            <button class="modal-close" data-modal-close="settingsModal" aria-label="Close dialog"></button>
+            <h2>App Settings</h2>
+            <p class="sub" style="font-size:12px; color:var(--text-tertiary); margin:6px 0 14px;">SMS credentials are encrypted on this computer for your signed-in ShadowPhone account. Each user supplies their own provider credentials.</p>
+            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-dim); margin-bottom:5px;">smspool API key</label>
+            <input type="password" id="settingSmspoolKey" placeholder="Your smspool.net API key (used for IG phone signup ~$0.42/acct)" style="width:100%; padding:8px 10px; background:var(--surface); border:1px solid var(--border); border-radius:4px; color:var(--text); font-family:ui-monospace,monospace; font-size:12px;" />
+            <p id="settingSmspoolStatus" style="font-size:11px; color:var(--text-tertiary); margin:6px 0 0;">Checking saved credential…</p>
+            <p style="font-size:11px; color:var(--text-tertiary); margin:4px 0 0;">Used by the toolbar "+ Create IG Account" pill. Get yours from <span style="color:var(--text-dim);">smspool.net → Dashboard → API</span>.</p>
+            <div class="actions" style="margin-top:10px;">
+                <button class="btn" id="clearSmspoolKeyBtn" hidden>Clear key</button>
+                <button class="btn brand" id="saveSettingsBtn">Save key</button>
+            </div>
+
+            <div style="border-top:1px solid var(--border); margin-top:16px; padding-top:14px;">
+                <label for="settingTextverifiedKey" style="display:block; margin-bottom:5px; font-size:12px;">TextVerified API key</label>
+                <input type="password" id="settingTextverifiedKey" autocomplete="off" placeholder="Enter TextVerified API key" style="width:100%; padding:8px 10px; background:var(--surface); border:1px solid var(--border); border-radius:4px; color:var(--text);" />
+                <label for="settingTextverifiedUsername" style="display:block; margin:10px 0 5px; font-size:12px;">TextVerified API username</label>
+                <input type="password" id="settingTextverifiedUsername" autocomplete="off" placeholder="Enter TextVerified API username" style="width:100%; padding:8px 10px; background:var(--surface); border:1px solid var(--border); border-radius:4px; color:var(--text);" />
+                <p id="settingTextverifiedStatus" style="font-size:11px; color:var(--text-tertiary); margin:6px 0 0;">Checking saved credentials…</p>
+                <p style="font-size:11px; color:var(--text-tertiary); margin:4px 0 0;">Find both credentials in your TextVerified API settings. Instagram signup currently uses US mobile numbers.</p>
+                <div class="actions" style="margin-top:10px;">
+                    <button class="btn" id="clearTextverifiedBtn" hidden>Clear TextVerified</button>
+                    <button class="btn brand" id="saveTextverifiedBtn">Save TextVerified</button>
+                </div>
+            </div>
+
+            <div style="border-top:1px solid var(--border); margin:16px 0 0; padding-top:14px;">
+                <label style="display:flex; align-items:center; gap:9px; cursor:pointer; font-size:13px; color:var(--text);">
+                    <input type="checkbox" id="settingUsbVpsBridge" style="width:16px; height:16px; accent-color:var(--brand); cursor:pointer;" />
+                    <span style="font-weight:600;">Expose USB phones to VPS</span>
+                </label>
+                <p style="font-size:11px; color:var(--text-tertiary); margin:6px 0 0;">Shares this PC's adb over <strong>its Tailscale</strong> so a remote VPS drives your USB phones over the <strong>USB cable</strong> — <strong>no Tailscale on the phones</strong>, and it survives airplane-mode profile switches. A real alternative to running phones on Tailscale. Only the tailnet can reach it.</p>
+                <div id="usbVpsEndpoints" style="margin-top:9px; font-family:ui-monospace,monospace; font-size:11px; color:var(--text-dim);"></div>
+            </div>
+
+            <div style="border-top:1px solid var(--border); margin:16px 0 0; padding-top:14px;">
+                <label style="display:flex; align-items:center; gap:9px; cursor:pointer; font-size:13px; color:var(--text);">
+                    <input type="checkbox" id="settingReactDashboard" style="width:16px; height:16px; accent-color:var(--brand); cursor:pointer;" />
+                    <span style="font-weight:600;">New dashboard (default · uncheck for classic)</span>
+                </label>
+                <p style="font-size:11px; color:var(--text-tertiary); margin:6px 0 0;">The redesigned React Models Dashboard is now the default. Uncheck to revert to the classic HTML version. Takes effect the next time you open a phone's Models Dashboard (it recreates the window).</p>
+            </div>
+
+            <div class="actions" style="margin-top:14px;">
+                <button class="btn" data-modal-close="settingsModal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnostics modal -->
+    <div class="modal-bg" id="diagModal">
+        <div class="modal" style="max-width: 760px;">
+            <button class="modal-close" data-modal-close="diagModal" aria-label="Close dialog"></button>
+            <h2>Diagnostics</h2>
+            <div class="sub" id="diagSummary">Running…</div>
+            <pre id="diagText" style="background:#000; color:#cfd; font-family:ui-monospace,monospace; font-size:10px; padding:10px; max-height:400px; overflow:auto; border:1px solid var(--border); border-radius:4px; white-space:pre-wrap; word-break:break-word;"></pre>
+            <div class="actions" style="margin-top:10px;">
+                <button class="btn" data-modal-close="diagModal">Close</button>
+                <button class="btn brand" id="diagCopy">Copy to clipboard</button>
+                <button class="btn" id="diagRerun">Re-run</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Phone wizard modal -->
+    <div class="modal-bg" id="addModal">
+        <div class="modal">
+            <button class="modal-close" data-modal-close="addModal" aria-label="Close dialog"></button>
+            <h2>Add a Phone</h2>
+            <div class="sub">Plug the phone into this computer with a USB cable. The wizard runs each step automatically — you only need to <strong>tap prompts on the phone screen</strong> when they appear (USB debugging, Tailscale sign-in, VPN permission).</div>
+
+            <div class="step" id="s0" data-step="0" style="border-color:var(--brand);">
+                <div class="num" style="background:var(--brand); color:#000;">!</div>
+                <div class="body">
+                    <div class="title">Before you start — Tailscale on THIS computer</div>
+                    <div class="detail">
+                        Tailscale must already be installed + signed-in on this computer with the <strong>owner's Google account</strong>. Check the tray icon next to the clock — it should say <em>"Connected"</em>. If not:<br>
+                        1. Download from <a href="https://tailscale.com/download" target="_blank" style="color:var(--info);">tailscale.com/download</a><br>
+                        2. Install + launch → "Sign in with Google" → use the owner account<br>
+                        3. Once the tray icon shows "Connected", come back and continue.
+                    </div>
+                </div>
+            </div>
+            <div class="step" id="s1" data-step="1">
+                <div class="num">1</div>
+                <div class="body">
+                    <div class="title">Detect phone over USB</div>
+                    <div class="detail" id="s1-detail">
+                        <strong>On the phone (Owner profile only), first turn on Developer Options:</strong> Settings → About phone → tap <strong>Build number 7 times</strong>. Then go back → System → Developer options → flip <strong>USB debugging</strong> ON.<br><br>
+                        Plug the USB cable into this computer. When the phone shows <em>"Allow USB debugging?"</em>, tick <strong>Always allow from this computer</strong> and tap Allow.
+                    </div>
+                </div>
+            </div>
+            <div class="step" id="s2" data-step="2">
+                <div class="num">2</div>
+                <div class="body">
+                    <div class="title">Install Tailscale on the phone</div>
+                    <div class="detail" id="s2-detail">Downloads the latest Tailscale APK and sideloads it over USB. If the sideload fails the wizard opens the Play Store on the phone — just tap Install.</div>
+                </div>
+            </div>
+            <div class="step" id="s3" data-step="3">
+                <div class="num">3</div>
+                <div class="body">
+                    <div class="title">Sign in to Tailscale on the phone</div>
+                    <div class="detail" id="s3-detail">
+                        Opens the Tailscale app. <strong>Sign in with the same Google account that owns the tailnet</strong> (ask Anyro if you're not sure).<br><br>
+                        <strong style="color:var(--brand);">⚠ GrapheneOS only — do this BEFORE you can sign in:</strong><br>
+                        On the phone's <strong>Owner profile</strong>, open Settings → <strong>Network &amp; Internet</strong> → <strong>VPN</strong> → tap the <strong>⚙ gear next to Tailscale</strong> → toggle <strong>"Block connections without VPN" OFF</strong>. Without this, Tailscale's sign-in browser can't load and the app appears broken.<br><br>
+                        Then in Tailscale: tap Sign in → finish the browser flow. Android pops <em>"Connection request"</em> — tap <strong>OK</strong> to allow the VPN. Click <em>Continue</em> back in this wizard when you've signed in.
+                    </div>
+                </div>
+            </div>
+            <div class="step" id="s4" data-step="4">
+                <div class="num">4</div>
+                <div class="body">
+                    <div class="title">Wait for tailnet connection</div>
+                    <div class="detail" id="s4-detail">Watches the phone for up to 3 minutes until it gets a <span class="mono">100.x.x.x</span> tailnet address. If it stalls: check the phone is connected to WiFi and Tailscale shows "Connected" at the top of its screen.</div>
+                </div>
+            </div>
+            <div class="step" id="s5" data-step="5">
+                <div class="num">5</div>
+                <div class="body">
+                    <div class="title">Enable WiFi-ADB (<span class="mono">adb tcpip 5555</span>)</div>
+                    <div class="detail" id="s5-detail">
+                        Tells the phone to accept adb commands over tailnet. <strong>USB cable MUST be plugged in for this step</strong> — after this completes you can unplug it and the phone keeps working over Tailscale.<br><br>
+                        <strong>Heads up:</strong> wireless ADB resets every time the phone reboots — if a phone goes offline after a restart, plug USB back in and re-run this wizard to re-enable it.
+                    </div>
+                </div>
+            </div>
+            <div class="step" id="s6" data-step="6">
+                <div class="num">6</div>
+                <div class="body">
+                    <div class="title">Battery exemption for Tailscale</div>
+                    <div class="detail" id="s6-detail">Stops Android from killing Tailscale in the background. Without this the phone drops off the tailnet every few hours.</div>
+                </div>
+            </div>
+            <div class="step" id="s7" data-step="7">
+                <div class="num">7</div>
+                <div class="body">
+                    <div class="title">Install ShadowPhone Companion</div>
+                    <div class="detail" id="s7-detail">Installs the Companion APK which auto-restores Wireless Debugging after every phone reboot — no more re-plugging USB when a phone comes back online.</div>
+                </div>
+            </div>
+            <div class="step" id="s8" data-step="8" style="border-color:var(--success);">
+                <div class="num" style="background:var(--success); color:#000;">✓</div>
+                <div class="body">
+                    <div class="title">Done — what happens next</div>
+                    <div class="detail">
+                        <strong>You can unplug the USB cable now.</strong> The phone talks to this computer over Tailscale from here on — no cable needed for normal use.<br><br>
+                        • <strong>Right-click ShadowPhone tray icon</strong> → see the phone listed → "Launch" to mirror it.<br>
+                        • Or click <strong>Refresh</strong> in this Fleet panel and the phone appears in the list.<br>
+                        • The phone auto-registers in the cloud — every VA signed into the same account sees it after they hit <strong>☁ Sync</strong> (above) on their machine.<br><br>
+                        <strong>Re-pair after reboot:</strong> Android wipes <span class="mono">tcpip 5555</span> on every restart. If a phone goes offline after a reboot, plug it back in via USB and run this wizard again — it'll re-enable wireless ADB.
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn" id="addCancel">Close</button>
+                <button class="btn" id="addHelp" title="Common issues + fixes">? Common Issues</button>
+                <button class="btn brand" id="addStart">Start</button>
+                <button class="btn brand" id="addContinue" style="display:none;">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2.17.14: Phone-auth-wait modal — surfaced while we poll for the
+         "Allow USB debugging" tap on the phone. Auto-closes on success/timeout. -->
+    <div class="modal-bg" id="authWaitModal">
+        <div class="modal" style="max-width:520px;">
+            <h2 style="display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--brand); animation:pulse 1.2s ease-in-out infinite;"></span>
+                Tap "Allow" on your phone
+            </h2>
+            <div class="sub" id="authWaitSub" style="margin-bottom:14px;">Waiting for <b id="authWaitPhone">phone</b>…</div>
+            <div style="background:var(--bg); border:1px solid var(--border); padding:14px; border-radius:6px; font-size:13px; line-height:1.65;">
+                <ol style="margin:0; padding-left:18px;">
+                    <li>Wake your phone screen.</li>
+                    <li>You'll see a popup: <b>"Allow USB debugging from this computer?"</b></li>
+                    <li>Check <b>"Always allow from this computer"</b> → tap <b>Allow</b>.</li>
+                </ol>
+                <div style="margin-top:12px; font-size:12px; color:var(--muted);">
+                    ShadowPhone is checking every 2 seconds. As soon as you tap Allow, your mirror will launch automatically — no need to click anything else.
+                </div>
+                <div id="authWaitCountdown" style="margin-top:10px; font-size:11px; color:var(--muted);">Auto-cancels in 60s</div>
+            </div>
+            <div class="actions" style="margin-top:12px;">
+                <button class="btn" id="authWaitClose">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <style>
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(1.3);} }
+    </style>
+
+    <!-- 2.17.0: Troubleshoot modal — per-step or general help -->
+    <div class="modal-bg" id="troubleModal">
+        <div class="modal" style="max-width:640px;">
+            <button class="modal-close" data-modal-close="troubleModal" aria-label="Close dialog"></button>
+            <h2 id="troubleTitle">Troubleshoot</h2>
+            <div class="sub" id="troubleSub"></div>
+            <div id="troubleBody" style="background:var(--bg); border:1px solid var(--border); padding:12px; border-radius:6px; font-size:12px; line-height:1.55; max-height:420px; overflow-y:auto;"></div>
+            <div class="actions" style="margin-top:10px; flex-wrap:wrap;">
+                <button class="btn" data-modal-close="troubleModal">Close</button>
+                <button class="btn" id="troubleDiag" title="Run a full diagnostic right now">Run Diagnostic</button>
+                <button class="btn" id="troubleLogs" title="Open the launcher logs folder">Open Logs Folder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature 3: Plugin picker — device -> plugin -> command -> Run -->
+    <div class="modal-bg" id="pluginsModal">
+        <div class="modal" style="max-width:520px;">
+            <button class="modal-close" data-modal-close="pluginsModal" aria-label="Close dialog"></button>
+            <h2>Run Plugin</h2>
+            <div class="sub">Runs an external command against a specific phone — scrcpy by default, or anything you add to <code>plugins.yaml</code>.</div>
+
+            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-dim); margin:12px 0 5px;">Device</label>
+            <select id="pluginDeviceSelect" style="width:100%;"></select>
+
+            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-dim); margin:12px 0 5px;">Plugin</label>
+            <select id="pluginSelect" style="width:100%;"></select>
+
+            <div id="pluginPreview" style="margin-top:10px; font-family:ui-monospace,monospace; font-size:11px; color:var(--text-tertiary); word-break:break-all;"></div>
+            <div id="pluginWarning" style="margin-top:6px; font-size:11px; color:var(--text-tertiary);"></div>
+
+            <div class="actions" style="margin-top:14px;">
+                <button class="btn" data-modal-close="pluginsModal">Close</button>
+                <button class="btn" id="pluginEditConfigBtn">Edit config</button>
+                <button class="btn brand" id="pluginRunBtn">Run</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="list" id="list">
+        <div class="empty">scanning fleet · · ·</div>
+    </div>
+
+    <div class="toast" id="toast">ready</div>
+</div>
+
+<script>
+    const listEl = document.getElementById('list')
+    const toast = document.getElementById('toast')
+    const tsBadge = document.getElementById('tsBadge')
+    const tsLabel = document.getElementById('tsLabel')
+    let selectedUdid = null   // F4: udid of the keyboard-selected row
+
+    function setToast(text, kind = '') {
+        toast.textContent = String(text).slice(0, 200)
+        toast.className = 'toast' + (kind ? ' ' + kind : '')
+    }
+
+    async function refresh() {
+        if (!window.fleet) { setToast('preload not loaded', 'err'); return }
+        setToast('scanning …')
+
+        // Tailscale status
+        try {
+            const ts = await window.fleet.tailscaleStatus()
+            if (ts && ts.transportReady) {
+                tsBadge.className = 'ts ok'
+                const peers = (ts.peers || []).length
+                tsLabel.textContent = ts.healthState === 'degraded'
+                    ? 'Tailscale degraded · ' + peers + ' peers'
+                    : 'Tailscale · ' + peers + ' peers'
+            } else {
+                tsBadge.className = 'ts off'
+                tsLabel.textContent = ts?.error || 'Tailscale offline'
+            }
+        } catch (e) {
+            tsBadge.className = 'ts off'
+            tsLabel.textContent = 'Tailscale unavailable'
+        }
+
+        // Phones
+        const phones = await window.fleet.getPhones()
+        listEl.innerHTML = ''
+        if (!phones || !phones.length) {
+            listEl.innerHTML = '<div class="empty">No phones detected. Connect a phone over USB or Tailscale to see it here.</div>'
+            setToast('0 phones', '')
+            return
+        }
+        for (const p of phones) {
+            const row = document.createElement('div')
+            row.className = 'phone ' + (p.tailnetIp ? 'online' : 'usb-only') + (p.mirroring ? ' mirroring' : '')
+            row.setAttribute('data-udid', p.udid)
+            row.innerHTML = `
+                <span class="dot"></span>
+                <div class="info">
+                    <div class="name">${escapeHtml(p.nickname || p.udid)}</div>
+                    <div class="meta">${escapeHtml(p.udid)}</div>
+                    <div class="transport">${p.tailnetIp ? 'via Tailscale · ' + p.tailnetIp : 'USB only'}</div>
+                    ${p.mirroring ? '<div class="spc-chip" data-kind="brand"><span class="dot"></span>mirroring</div>' : ''}
+                </div>
+                <div class="actions">
+                    <button class="btn brand" data-udid="${escapeHtml(p.udid)}" data-act="launch">Launch</button>
+                    <button class="btn" data-udid="${escapeHtml(p.udid)}" data-act="dashboard" title="Open the Models Dashboard for this phone">Dashboard</button>
+                    <button class="btn" data-udid="${escapeHtml(p.udid)}" data-act="copylog" title="Copy entire launcher.log to clipboard — paste into a DM to Anyro so he can debug">Copy Logs</button>
+                </div>
+            `
+            // F4: click a row (not a button) to select it for keyboard actions.
+            row.addEventListener('click', (ev) => {
+                if (ev.target.closest('button')) return
+                selectedUdid = p.udid
+                applySelection()
+            })
+            listEl.appendChild(row)
+        }
+        setToast(phones.length + ' phones (' + phones.filter(p => p.tailnetIp).length + ' on tailnet)', '')
+        applySelection()
+
+        // Wire Dashboard buttons — open the per-phone Models Dashboard window.
+        listEl.querySelectorAll('button[data-act="dashboard"]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const udid = btn.getAttribute('data-udid')
+                const phone = phones.find(p => p.udid === udid)
+                if (!phone) { setToast('phone not found: ' + udid, 'err'); return }
+                setToast('opening dashboard for ' + (phone.nickname || udid) + ' …')
+                const r = await window.fleet.launchDashboard(phone)
+                if (r?.success === false) { setToast('dashboard failed: ' + (r.error || 'unknown'), 'err') }
+                else { setToast('') }
+            })
+        })
+
+        // Wire launch buttons — pass the WHOLE phone object so main can do
+        // adb-connect-first for tailnet phones instead of trying to scrcpy
+        // with the hostname (which never matches a local adb serial).
+        listEl.querySelectorAll('button[data-act="launch"]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const udid = btn.getAttribute('data-udid')
+                const phone = phones.find(p => p.udid === udid)
+                if (!phone) { setToast('phone not found: ' + udid, 'err'); return }
+                setToast('launching ' + (phone.nickname || udid) + ' …')
+                const r = await window.fleet.launchScrcpy(phone)
+                if (r?.success === false) {
+                    // 2.16.12: surface the most common recoverable failure
+                    // (phone rebooted, lost adb tcpip 5555) with a clear
+                    // call-to-action instead of cryptic adb output.
+                    if (r.code === 'mac-scrcpy-missing') {
+                        // 2.17.8: Mac users who haven't installed scrcpy yet.
+                        // Offer one-click brew install (if homebrew is present)
+                        // or surface the install command (if not).
+                        const canAuto = !r.needsBrew
+                        const msg = canAuto
+                            ? `scrcpy is missing.\n\nClick OK to install it now via Homebrew (takes 2-3 min). ShadowPhone will be unable to mirror phones until this is done.`
+                            : `scrcpy AND Homebrew are missing.\n\nClick OK to copy the install command to your clipboard. Paste it into Terminal and re-launch ShadowPhone when done.\n\nCommand:\n${r.installCommand}`
+                        if (confirm(msg)) {
+                            if (canAuto) {
+                                setToast('installing scrcpy via brew (2-3 min) …', 'warn')
+                                const off = window.fleet.onMacInstallProgress?.((line) => {
+                                    setToast('brew: ' + String(line).slice(0, 120), 'warn')
+                                })
+                                const ir = await window.fleet.macInstallScrcpy()
+                                try { off?.() } catch (_) {}
+                                if (ir?.ok) {
+                                    setToast(`✓ scrcpy installed (${ir.source}) — launching ${phone.nickname || udid} …`, 'ok')
+                                    setTimeout(async () => {
+                                        const rr = await window.fleet.launchScrcpy(phone)
+                                        if (rr?.success === false) setToast((rr.error || 'launch failed').slice(0, 150), 'err')
+                                    }, 800)
+                                } else {
+                                    // 2.17.10: surface the FULL brew log via the troubleshoot modal
+                                    // so users can see the actual reason + paste it for support.
+                                    const fullLog = ir?.fullLog || ir?.error || 'unknown'
+                                    const oneLiner = ir?.needsXcodeCLT
+                                        ? 'Xcode CLT install timed out — open Terminal, run: xcode-select --install (click Install in popup)'
+                                        : 'brew install scrcpy failed — open Terminal, run: xcode-select --install ; brew update && brew install scrcpy'
+                                    setToast('install failed — see Troubleshoot for details', 'err')
+                                    try {
+                                        const tBody = document.getElementById('troubleBody')
+                                        const tTitle = document.getElementById('troubleTitle')
+                                        const tSub = document.getElementById('troubleSub')
+                                        if (tBody && tTitle && tSub) {
+                                            tTitle.textContent = 'scrcpy auto-install failed'
+                                            tSub.textContent = 'The auto-installer hit an error. Run the manual fix below in Terminal.'
+                                            tBody.innerHTML = `
+                                                <p><strong>Manual fix (paste in Terminal):</strong></p>
+                                                <pre style="background:#000; padding:8px; border-radius:4px; overflow-x:auto; font-family:ui-monospace,monospace; font-size:11px; color:#4ade80;">${escapeHtml(oneLiner)}</pre>
+                                                <p style="margin-top:12px;"><strong>What happened (full brew log tail):</strong></p>
+                                                <pre style="background:#000; padding:8px; border-radius:4px; overflow:auto; font-family:ui-monospace,monospace; font-size:10px; color:#cfd; max-height:300px;">${escapeHtml(fullLog)}</pre>
+                                            `
+                                            document.getElementById('troubleModal').classList.add('show')
+                                        }
+                                    } catch (_) {}
+                                }
+                            } else {
+                                try { await window.fleet.copyToClipboard(r.installCommand) } catch (_) {}
+                                setToast('Install command copied — paste in Terminal', 'warn')
+                            }
+                        } else {
+                            setToast('Launch cancelled — install scrcpy first', 'err')
+                        }
+                    } else if (r.code === 'phone-needs-auth') {
+                        // 2.17.14: backend already auto-retried for 60s. Modal
+                        // was shown via phone-auth-wait; this branch fires only
+                        // if user never tapped Allow during that window.
+                        setToast(`${phone.nickname || udid}: still no Allow tap after 60s — wake phone + try Launch again`, 'err')
+                    } else if (r.code === 'phone-needs-rewifi') {
+                        setToast(`${phone.nickname || udid}: needs USB re-pair (rebooted?) → open + Add Phone with USB`, 'err')
+                    } else if (r.code === 'phone-needs-rewifi-remote') {
+                        // 2.17.18: this machine has no USB, so the auto-fix
+                        // can't run from here. Ask the phone-shepherd to do it.
+                        setToast(`${phone.nickname || udid}: offline + rebooted? Wireless ADB resets on reboot. No USB here — ask phone-shepherd to plug it once on any PC + run adb tcpip 5555`, 'err')
+                    } else if (r.code === 'phone-unreachable') {
+                        setToast(`${phone.nickname || udid}: unreachable — phone off or Tailscale down`, 'err')
+                    } else {
+                        setToast((r.error || 'launch failed').slice(0, 150), 'err')
+                    }
+                } else {
+                    setToast(r?.alreadyRunning ? 'already running' : 'launched ' + (phone.nickname || udid), 'ok')
+                }
+            })
+        })
+
+        // 2.18.11: Copy Logs per-phone — reads the entire launcher.log and
+        // copies it to clipboard. Anyro: "we need entire logs they can copy
+        // and dm me so we can debug whatever happens".
+        listEl.querySelectorAll('button[data-act="copylog"]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                btn.disabled = true
+                const orig = btn.textContent
+                btn.textContent = 'reading …'
+                try {
+                    const r = await window.fleet.readFullLog?.()
+                    if (!r?.success) {
+                        setToast('failed to read launcher.log: ' + (r?.error || 'unknown'), 'err')
+                        return
+                    }
+                    await window.fleet.copyToClipboard(r.content || '')
+                    const kb = Math.round((r.bytes || 0) / 1024)
+                    setToast(`copied entire launcher.log to clipboard (${kb}KB) — paste in DM to Anyro`, 'ok')
+                } catch (e) {
+                    setToast('copy logs failed: ' + (e?.message || e), 'err')
+                } finally {
+                    btn.disabled = false
+                    btn.textContent = orig
+                }
+            })
+        })
+    }
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]))
+    }
+
+    // ==================== F4: keyboard-first row selection ====================
+    // j/k (or ↑/↓) move a highlighted row, Enter launches/mirrors it, Esc
+    // closes whatever modal is open (works for any current AND future
+    // .modal-bg, e.g. the Plugins picker). Never hijacks typing in a field.
+    function applySelection() {
+        listEl.querySelectorAll('.phone.selected').forEach(el => el.classList.remove('selected'))
+        if (!selectedUdid) return
+        const row = Array.from(listEl.querySelectorAll('.phone[data-udid]'))
+            .find(el => el.getAttribute('data-udid') === selectedUdid)
+        if (row) { row.classList.add('selected'); row.scrollIntoView({ block: 'nearest' }) }
+    }
+
+    function moveSelection(delta) {
+        const rows = Array.from(listEl.querySelectorAll('.phone[data-udid]'))
+        if (!rows.length) return
+        let idx = rows.findIndex(r => r.getAttribute('data-udid') === selectedUdid)
+        idx = idx === -1 ? (delta > 0 ? 0 : rows.length - 1) : Math.max(0, Math.min(rows.length - 1, idx + delta))
+        selectedUdid = rows[idx].getAttribute('data-udid')
+        applySelection()
+    }
+
+    document.addEventListener('keydown', (ev) => {
+        const tag = (document.activeElement && document.activeElement.tagName || '').toLowerCase()
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return
+
+        const openModal = document.querySelector('.modal-bg.show')
+        if (ev.key === 'Escape') {
+            if (openModal) openModal.classList.remove('show')
+            return
+        }
+        if (openModal) return
+
+        if (ev.key === 'j' || ev.key === 'ArrowDown') { ev.preventDefault(); moveSelection(1) }
+        else if (ev.key === 'k' || ev.key === 'ArrowUp') { ev.preventDefault(); moveSelection(-1) }
+        else if (ev.key === 'Enter' && selectedUdid) {
+            const row = Array.from(listEl.querySelectorAll('.phone[data-udid]'))
+                .find(el => el.getAttribute('data-udid') === selectedUdid)
+            const btn = row && row.querySelector('button[data-act="launch"]')
+            if (btn) { ev.preventDefault(); btn.click() }
+        }
+    })
+
+    document.getElementById('commandCenter')?.addEventListener('click', async () => {
+        try {
+            setToast('opening Command Center …')
+            const r = await window.fleet.launchSchedule?.()
+            if (r?.success === false) setToast(r?.error || 'could not open', 'err')
+        } catch (e) { setToast(String(e?.message || e), 'err') }
+    })
+
+    document.getElementById('tileAll').addEventListener('click', async () => {
+        setToast('tile all …')
+        const r = await window.fleet.tileAll()
+        setToast(
+            r?.ok === false ? (r?.error || 'tile failed')
+                : 'launched ' + (r?.spawned?.length || 0) + ' phones',
+            r?.ok === false ? 'err' : 'ok'
+        )
+        setTimeout(refresh, 1500)
+    })
+
+    document.getElementById('refresh').addEventListener('click', refresh)
+
+    // ==================== Add Phone wizard ====================
+    const addModal = document.getElementById('addModal')
+    const addStart = document.getElementById('addStart')
+    const addContinue = document.getElementById('addContinue')
+    const addCancel = document.getElementById('addCancel')
+    let currentPhone = null
+    let wizardManualWait = false
+
+    function setStep(n, state, detail) {
+        for (let i = 1; i <= 7; i++) {
+            const el = document.getElementById('s' + i)
+            if (!el) continue
+            // Don't downgrade already-done steps when re-entering on Continue
+            if (i < n && !el.classList.contains('done') && !el.classList.contains('error')) el.classList.add('done')
+        }
+        const el = document.getElementById('s' + n)
+        if (el) {
+            el.classList.remove('active', 'done', 'error')
+            if (state) el.classList.add(state)
+        }
+        if (detail != null) {
+            const det = document.getElementById('s' + n + '-detail')
+            if (det) det.innerHTML = detail
+        }
+    }
+
+    // 2.17.0: every error state gets an inline Troubleshoot button so VAs
+    // can self-serve without DM-ing for help. Keyed by step number to show
+    // the right cheat-sheet content.
+    function setStepError(n, summary) {
+        const det = `<strong style="color:#f87171;">${summary}</strong>
+            <div style="margin-top:6px;">
+                <button class="btn" style="font-size:10px; padding:0 8px; height:22px;" onclick="openTroubleshoot(${n})">🛟 Troubleshoot step ${n}</button>
+                <button class="btn" style="font-size:10px; padding:0 8px; height:22px; margin-left:4px;" onclick="openTroubleshoot(0)">? Common Issues</button>
+            </div>`
+        setStep(n, 'error', det)
+    }
+
+    const TROUBLESHOOT = {
+        0: {
+            title: 'Common Add-Phone Issues',
+            sub: 'Quick reference for the most common reasons phones don\'t connect.',
+            body: `
+                <p><strong>Phone never appears over USB</strong></p>
+                <ul>
+                    <li>USB cable might be charge-only — try a different cable.</li>
+                    <li>Developer Options off: Settings → About phone → tap Build number 7×.</li>
+                    <li>USB debugging off: Settings → System → Developer options → USB debugging.</li>
+                    <li>You rejected the "Allow USB debugging?" prompt earlier — revoke under Developer options → "Revoke USB debugging authorizations" and re-plug.</li>
+                </ul>
+                <p><strong>Tailscale won't sign in</strong></p>
+                <ul>
+                    <li>Make sure you signed in on the phone with the SAME Google account that owns the tailnet (not your personal one).</li>
+                    <li>VPN permission popup needs OK on the phone.</li>
+                    <li>Phone is on the same WiFi as the rest of your gear (no captive-portal page open).</li>
+                </ul>
+                <p><strong>Tailnet IP never comes (stuck on "polling")</strong></p>
+                <ul>
+                    <li>Open the Tailscale app on the phone — does it say "Connected"?</li>
+                    <li>If yes but no 100.x.x.x: tap "Connect" toggle off + on in the Tailscale app.</li>
+                    <li>If no: tap "Sign in" again, complete the browser flow.</li>
+                    <li>Owner may need to approve the device under their Tailscale admin console → Machines → Pending.</li>
+                </ul>
+                <p><strong>Phone connects via USB but not Tailscale</strong></p>
+                <ul>
+                    <li>WiFi-ADB (<span class="mono">adb tcpip 5555</span>) gets wiped on every reboot. Plug back in via USB + re-run this wizard.</li>
+                    <li>Some routers block peer-to-peer — Tailscale falls back to DERP relay which still works but is slower.</li>
+                </ul>
+                <p><strong>Phone shows up but won't launch</strong></p>
+                <ul>
+                    <li>Run a diagnostic (button below) — it tests ping + adb-connect for every known phone.</li>
+                    <li>Common cause on Windows: <strong>ProtonVPN Kill Switch is on</strong>. Turn it off (Settings → Connection → Kill Switch) — it silently blocks tailnet traffic.</li>
+                </ul>
+            `,
+        },
+        1: {
+            title: 'Step 1 failed — USB phone not detected',
+            sub: 'The wizard couldn\'t find any phone over USB.',
+            body: `
+                <p><strong>Things to check, in order:</strong></p>
+                <ol>
+                    <li>The USB cable supports data, not just charging. Many cheap cables are charge-only — borrow one from a phone box.</li>
+                    <li>Plug into a USB port on the back of the desktop, not a hub. Hubs sometimes drop ADB.</li>
+                    <li>On the phone (Owner profile): Settings → About phone → tap <strong>Build number 7 times</strong> until "You are now a developer".</li>
+                    <li>Settings → System → <strong>Developer options</strong> → flip <strong>USB debugging</strong> ON.</li>
+                    <li>Unplug + replug. The phone shows <em>"Allow USB debugging?"</em> → tick <strong>Always allow from this computer</strong> → Allow.</li>
+                    <li>If you already tapped Deny: Developer options → <strong>Revoke USB debugging authorizations</strong> → unplug + replug.</li>
+                </ol>
+                <p>If still nothing: run a Diagnostic — it'll list every USB device the system sees.</p>
+            `,
+        },
+        2: {
+            title: 'Step 2 failed — Tailscale install',
+            sub: 'Couldn\'t sideload the Tailscale APK to the phone.',
+            body: `
+                <ul>
+                    <li>Phone storage might be full — clear some space and retry.</li>
+                    <li>Some Pixel builds block sideloads from PCs unless "Install via USB" is enabled: Settings → System → Developer options → <strong>Install via USB</strong>.</li>
+                    <li><strong>Workaround</strong>: install Tailscale manually from the Play Store on the phone, then hit Retry — the wizard skips this step if it sees Tailscale already installed.</li>
+                </ul>
+            `,
+        },
+        3: {
+            title: 'Step 3 failed — Tailscale app open / sign-in',
+            sub: 'Couldn\'t open Tailscale or sign-in browser won\'t load.',
+            body: `
+                <p><strong>GrapheneOS sign-in fix — do this first if browser won't load:</strong></p>
+                <ol>
+                    <li>On the phone's <strong>Owner profile</strong>, open <strong>Settings</strong>.</li>
+                    <li>Tap <strong>Network & Internet</strong> → <strong>VPN</strong>.</li>
+                    <li>Tap the <strong>⚙ gear icon</strong> next to Tailscale.</li>
+                    <li>Toggle <strong>"Block connections without VPN" OFF</strong>.</li>
+                    <li>Return to Tailscale app → tap Sign in → finish the browser flow.</li>
+                </ol>
+                <p>Without that toggle, GrapheneOS blocks all non-VPN traffic so Tailscale's sign-in browser can't reach Google — the app appears broken.</p>
+                <p><strong>Other things to check:</strong></p>
+                <ul>
+                    <li>Make sure Tailscale finished installing (Step 2). Unlock the phone, find the icon, tap it manually.</li>
+                    <li>If it crashes on open: force-stop Tailscale (long-press icon → App info → Force stop) and retry.</li>
+                </ul>
+            `,
+        },
+        4: {
+            title: 'Step 4 failed — Phone never got a tailnet IP',
+            sub: 'Watched for 3 minutes but the phone never landed on 100.x.x.x.',
+            body: `
+                <ol>
+                    <li>Open the Tailscale app on the phone. Does the top say "Connected" with a 100.x address shown?
+                        <ul>
+                            <li><strong>YES</strong> but wizard still failed — pull the USB cable and re-plug (sometimes ADB stalls). Hit Retry.</li>
+                            <li><strong>NO</strong> — go to step 2 below.</li>
+                        </ul>
+                    </li>
+                    <li>Tap the big "Connect" toggle off then on. Watch for the Android VPN-key icon in the status bar.</li>
+                    <li>If asked to sign in: use the <strong>owner</strong>'s Google account (not your personal one — that won't get added to the tailnet).</li>
+                    <li><strong>Owner needs to approve in admin panel</strong> if it's a new device on their ACL: tailscale.com → Machines → Pending → approve.</li>
+                    <li>Make sure the phone has working WiFi (open a browser, load any page).</li>
+                </ol>
+            `,
+        },
+        5: {
+            title: 'Step 5 failed — WiFi-ADB',
+            sub: 'Couldn\'t enable adb over tailnet.',
+            body: `
+                <ul>
+                    <li>The phone needs to be USB-plugged for this step to work — wireless ADB has to be enabled FROM the wired connection first.</li>
+                    <li>If the phone fell off tailnet during the wizard, the verify ping fails. Pull + re-plug USB + Retry.</li>
+                    <li>If your tailnet has strict ACLs, owner needs to allow port 5555 between PC and phone in the Tailscale ACL config.</li>
+                </ul>
+            `,
+        },
+        6: {
+            title: 'Step 6 failed — Battery exemption',
+            sub: 'Couldn\'t set the battery whitelist.',
+            body: `
+                <ul>
+                    <li>This is non-fatal — the phone still works. You'll just need to keep an eye on it because Android may kill Tailscale every few hours in the background.</li>
+                    <li>Manual fix on the phone: Settings → Apps → Tailscale → Battery → set to <strong>Unrestricted</strong>.</li>
+                </ul>
+            `,
+        },
+    }
+
+    function openTroubleshoot(stepNum) {
+        const t = TROUBLESHOOT[stepNum] || TROUBLESHOOT[0]
+        document.getElementById('troubleTitle').textContent = t.title
+        document.getElementById('troubleSub').textContent = t.sub
+        document.getElementById('troubleBody').innerHTML = t.body
+        document.getElementById('troubleModal').classList.add('show')
+    }
+    window.openTroubleshoot = openTroubleshoot  // exposed for inline onclick handlers
+
+    function resetWizard() {
+        for (let i = 1; i <= 7; i++) {
+            document.getElementById('s' + i).classList.remove('active', 'done', 'error')
+        }
+        addStart.style.display = ''
+        addContinue.style.display = 'none'
+        addStart.textContent = 'Start'
+        currentPhone = null
+        wizardManualWait = false
+    }
+
+    document.getElementById('addPhone').addEventListener('click', () => {
+        resetWizard()
+        addModal.classList.add('show')
+    })
+    addCancel.addEventListener('click', () => addModal.classList.remove('show'))
+
+    async function runWizard() {
+        addStart.disabled = true
+        addStart.textContent = 'Running…'
+
+        // Step 1: detect USB
+        setStep(1, 'active', 'scanning USB devices…')
+        const det = await window.fleet.provision.detectUsb()
+        if (!det.ok || !det.phones.length) {
+            setStepError(1, 'No USB phone found. Plug it in, enable USB debugging, tap <em>Always allow from this computer</em> on the phone. Then click Start again.')
+            addStart.disabled = false
+            addStart.textContent = 'Start'
+            return
+        }
+        // Prefer an unprovisioned phone, else first.
+        currentPhone = det.phones.find(p => !p.ready) || det.phones[0]
+        if (currentPhone.ready) {
+            setStep(1, 'done', `Found <strong>${escapeHtml(currentPhone.brand)} ${escapeHtml(currentPhone.model)}</strong> (<span class="mono">${escapeHtml(currentPhone.udid)}</span>) — already on tailnet at <span class="mono">${escapeHtml(currentPhone.tailnetIp)}</span>. Skipping remaining steps.`)
+            for (let i = 2; i <= 7; i++) setStep(i, 'done', 'skipped — already provisioned')
+            addStart.style.display = 'none'
+            addContinue.style.display = ''
+            addContinue.textContent = 'Done'
+            addContinue.onclick = () => { addModal.classList.remove('show'); refresh() }
+            return
+        }
+        setStep(1, 'done', `Found <strong>${escapeHtml(currentPhone.brand)} ${escapeHtml(currentPhone.model)}</strong> (<span class="mono">${escapeHtml(currentPhone.udid)}</span>)`)
+
+        // Step 2: install Tailscale
+        setStep(2, 'active', 'sideloading Tailscale APK…')
+        const inst = await window.fleet.provision.installTailscale(currentPhone.udid)
+        if (!inst.ok) {
+            setStepError(2, `Install failed: ${escapeHtml(inst.error || 'unknown')}`)
+            addStart.disabled = false; addStart.textContent = 'Retry'
+            return
+        }
+        if (inst.alreadyInstalled) {
+            setStep(2, 'done', 'Tailscale already installed on phone')
+        } else if (inst.manual) {
+            setStep(2, 'active', `<strong style="color:#facc15;">Action needed on the phone:</strong> ${escapeHtml(inst.hint)} Once installed, click <strong>Continue</strong>.`)
+            addStart.style.display = 'none'
+            addContinue.style.display = ''
+            addContinue.textContent = 'Continue (Tailscale is installed)'
+            wizardManualWait = true
+            await new Promise(resolve => {
+                addContinue.onclick = () => { wizardManualWait = false; resolve() }
+            })
+            addContinue.style.display = 'none'
+            setStep(2, 'done', 'Tailscale installed via Play Store')
+        } else {
+            setStep(2, 'done', `installed via ${escapeHtml(inst.method)}`)
+        }
+
+        // Step 3: open Tailscale app on the phone
+        setStep(3, 'active', 'opening Tailscale app on phone — <strong>sign in with the Google account that owns the tailnet</strong>, then accept the VPN permission')
+        const open = await window.fleet.provision.openTailscale(currentPhone.udid)
+        if (!open.ok) {
+            setStepError(3, `Couldn't open Tailscale: ${escapeHtml(open.error || 'unknown')}`)
+            addStart.disabled = false; addStart.textContent = 'Retry'
+            return
+        }
+        // Don't mark done yet — next step waits for the sign-in to take effect.
+
+        // Step 4: wait for tailnet IP
+        setStep(3, 'done', 'Tailscale app launched — sign in on the phone')
+        setStep(4, 'active', 'polling for tailnet IP (up to 3 min) — watching for a 100.x.x.x address…')
+        const wait = await window.fleet.provision.waitTailnet(currentPhone.udid)
+        if (!wait.ok) {
+            setStepError(4, `${escapeHtml(wait.error)} — Make sure Tailscale on the phone shows "Connected", then click Retry.`)
+            addStart.disabled = false; addStart.textContent = 'Retry'
+            return
+        }
+        setStep(4, 'done', `phone is on tailnet at <span class="mono">${escapeHtml(wait.ip)}</span>`)
+        currentPhone.tailnetIp = wait.ip
+
+        // Step 5: WiFi-ADB
+        setStep(5, 'active', `enabling adb tcpip 5555 + verifying connection to ${escapeHtml(wait.ip)}…`)
+        const wifi = await window.fleet.provision.enableWifiAdb(currentPhone.udid, wait.ip)
+        if (!wifi.ok) {
+            setStepError(5, escapeHtml(wifi.error))
+            addStart.disabled = false; addStart.textContent = 'Retry'
+            return
+        }
+        setStep(5, 'done', `WiFi-ADB enabled — phone reachable at <span class="mono">${escapeHtml(wait.ip)}:5555</span>`)
+
+        // Step 6: battery exemption
+        setStep(6, 'active', 'setting RUN_ANY_IN_BACKGROUND + Doze whitelist for Tailscale…')
+        await window.fleet.provision.exemptBattery(currentPhone.udid)
+        setStep(6, 'done', 'battery optimizer will no longer kill Tailscale')
+
+        // Step 7: companion install (non-fatal)
+        setStep(7, 'active', 'installing Companion (auto-restores wireless ADB after reboots)…')
+        const comp = await window.fleet.provision.installCompanion(currentPhone.udid)
+        if (comp && comp.ok) {
+            setStep(7, 'done', 'Companion installed — phone survives reboots ✓')
+        } else {
+            setStep(7, 'done', `<span style="color:#facc15;">Companion install skipped — ${escapeHtml(comp?.warning || comp?.error || 'unknown reason')}. Phone works now; re-run wizard to retry.</span>`)
+        }
+
+        // Final
+        addStart.style.display = 'none'
+        addContinue.style.display = ''
+        addContinue.textContent = 'Done — Unplug + Refresh Fleet'
+        addContinue.onclick = () => { addModal.classList.remove('show'); refresh() }
+        setToast('phone provisioned ✓ ' + currentPhone.udid + ' @ ' + wait.ip, 'ok')
+    }
+
+    addStart.addEventListener('click', runWizard)
+
+    // ==================== Diagnostics ====================
+    const diagModal = document.getElementById('diagModal')
+    const diagText = document.getElementById('diagText')
+    const diagSummary = document.getElementById('diagSummary')
+    async function runDiag() {
+        diagText.textContent = ''
+        diagSummary.textContent = 'collecting…'
+        diagModal.classList.add('show')
+        const r = await window.fleet.diagnostics()
+        if (!r || !r.ok) {
+            diagSummary.textContent = 'failed'
+            diagText.textContent = r?.error || 'no response'
+            return
+        }
+        const rep = r.report
+        const hintCount = rep.hints?.length || 0
+        diagSummary.innerHTML = hintCount > 0
+            ? `<span style="color:#facc15;">${hintCount} hint${hintCount === 1 ? '' : 's'} below.</span> Copy this to support.`
+            : `<span style="color:#4ade80;">Everything looks healthy.</span> Copy this if support asks.`
+        diagText.textContent = r.formatted
+    }
+    document.getElementById('diagnose').addEventListener('click', runDiag)
+    // 2.17.0: troubleshoot modal handlers
+    document.getElementById('addHelp')?.addEventListener('click', () => openTroubleshoot(0))
+    document.getElementById('troubleDiag')?.addEventListener('click', () => {
+        document.getElementById('troubleModal').classList.remove('show')
+        runDiag()
+    })
+    document.getElementById('troubleLogs')?.addEventListener('click', () => {
+        try { window.fleet?.openLogsFolder?.() } catch (_) {}
+    })
+
+    // 2.16.61: Cloud Sync — pull team's full sidebar data (phones, profiles,
+    // accounts, captions, schedules) and scaffold locally. Confirm-first so
+    // an accidental click can't do a heavy disk write.
+    document.getElementById('cloudSync').addEventListener('click', async () => {
+        setToast('checking cloud …')
+        const pv = await window.fleet.cloudSyncPreview().catch(e => ({ ok: false, error: e?.message }))
+        if (!pv?.ok) {
+            const msg = pv?.error === 'not-signed-in'
+                ? 'sign in via the dashboard first, then try again'
+                : (pv?.error || 'preview failed')
+            setToast(msg, 'err')
+            return
+        }
+        const c = pv.counts
+        const summary = `Phones ${c.phones} · Profiles ${c.profiles} · Accounts ${c.accounts} · Defaults ${c.defaults} · Schedules ${c.schedules}`
+        if (!confirm(`Pull team data?\n\n${summary}\n\nThis scaffolds missing local folders + writes captions/schedules. Existing videos/images are untouched.`)) return
+        setToast('syncing …')
+        const r = await window.fleet.cloudSyncRun().catch(e => ({ ok: false, error: e?.message }))
+        if (!r?.ok) { setToast('sync failed: ' + (r?.error || 'unknown'), 'err'); return }
+        const w = r.counts
+        setToast(`synced ${w.accounts} accounts · ${w.defaultsWritten} captions · ${w.schedules} schedules`, 'ok')
+        // Refresh the phone list (newly-scaffolded phones now appear)
+        try { renderList() } catch (_) {}
+    })
+    document.getElementById('diagRerun').addEventListener('click', runDiag)
+    document.getElementById('diagCopy').addEventListener('click', async () => {
+        try {
+            await window.fleet.copyToClipboard(diagText.textContent)
+            setToast('diagnostics copied to clipboard', 'ok')
+        } catch (e) { setToast('clipboard write failed: ' + e.message, 'err') }
+    })
+
+    // 2.18.13: explicit close-wire for any [data-modal-close] in the page —
+    // delegated handler so the diagModal/troubleModal/etc dead X buttons
+    // also become functional. (Existing fleet-panel never wired this.)
+    document.body.addEventListener('click', (ev) => {
+        const t = ev.target.closest('[data-modal-close]')
+        if (!t) return
+        const id = t.getAttribute('data-modal-close')
+        const m = id && document.getElementById(id)
+        if (m) m.classList.remove('show')
+    })
+
+    let smspoolConfigured = false
+    let textverifiedKeyConfigured = false
+    let textverifiedUsernameConfigured = false
+    let textverifiedSaving = false
+    function renderSmspoolSetting() {
+        const input = document.getElementById('settingSmspoolKey')
+        const status = document.getElementById('settingSmspoolStatus')
+        const save = document.getElementById('saveSettingsBtn')
+        const clear = document.getElementById('clearSmspoolKeyBtn')
+        if (input) {
+            input.value = ''
+            input.placeholder = smspoolConfigured ? 'Enter replacement key' : 'Enter smspool API key'
+        }
+        if (status) status.textContent = smspoolConfigured
+            ? 'Configured. Enter a replacement key or clear it.'
+            : 'Not configured.'
+        if (save) save.textContent = smspoolConfigured ? 'Replace key' : 'Save key'
+        if (clear) clear.hidden = !smspoolConfigured
+    }
+
+    function renderTextverifiedSetting() {
+        const key = document.getElementById('settingTextverifiedKey')
+        const username = document.getElementById('settingTextverifiedUsername')
+        key.value = ''
+        username.value = ''
+        key.placeholder = textverifiedKeyConfigured ? 'Enter replacement API key' : 'Enter TextVerified API key'
+        username.placeholder = textverifiedUsernameConfigured ? 'Enter replacement API username' : 'Enter TextVerified API username'
+        document.getElementById('settingTextverifiedStatus').textContent = textverifiedKeyConfigured && textverifiedUsernameConfigured
+            ? 'Configured for your signed-in account. Saved credentials are never displayed.'
+            : 'API key: ' + (textverifiedKeyConfigured ? 'configured' : 'required') + ' · API username: ' + (textverifiedUsernameConfigured ? 'configured' : 'required')
+        document.getElementById('clearTextverifiedBtn').hidden = !textverifiedKeyConfigured && !textverifiedUsernameConfigured
+    }
+
+    async function openSettingsModal() {
+        const input = document.getElementById('settingSmspoolKey')
+        try {
+            const cur = await window.fleet.getAppSetting?.('smspool_api_key')
+            smspoolConfigured = cur?.configured === true
+            renderSmspoolSetting()
+            const [textverifiedKey, textverifiedUsername] = await Promise.all([
+                window.fleet.getAppSetting?.('textverified_api_key'),
+                window.fleet.getAppSetting?.('textverified_api_username'),
+            ])
+            textverifiedKeyConfigured = textverifiedKey?.configured === true
+            textverifiedUsernameConfigured = textverifiedUsername?.configured === true
+            renderTextverifiedSetting()
+            const toggle = document.getElementById('settingUsbVpsBridge')
+            const on = await window.fleet.getAppSetting?.('usb_vps_bridge')
+            if (toggle) toggle.checked = (on === true || on === 'true' || on === 'on')
+            renderUsbVpsEndpoints()
+            const reactToggle = document.getElementById('settingReactDashboard')
+            const reactOn = await window.fleet.getAppSetting?.('react_dashboard')
+            if (reactToggle) reactToggle.checked = (reactOn !== false && reactOn !== 'false')
+        } catch (_) {}
+        document.getElementById('settingsModal').classList.add('show')
+        setTimeout(() => input?.focus(), 50)
+    }
+    window.openSettingsModal = openSettingsModal
+    document.getElementById('openSettings')?.addEventListener('click', openSettingsModal)
+    // When the dashboard's Settings gear opens this panel via open-settings, it
+    // appends ?openSettings=1 so we jump straight into the smspool settings view.
+    try {
+        if (new URLSearchParams(location.search).get('openSettings') === '1') {
+            setTimeout(openSettingsModal, 80)
+        }
+    } catch (_) {}
+    async function renderUsbVpsEndpoints() {
+        const el = document.getElementById('usbVpsEndpoints')
+        if (!el) return
+        if (!document.getElementById('settingUsbVpsBridge')?.checked) { el.textContent = ''; return }
+        try {
+            const s = (await window.fleet.getUsbVpsStatus?.()) || {}
+            if (!s.enabled || !s.endpoint) { el.innerHTML = '<span style="color:var(--text-tertiary)">starting… (needs this PC connected to Tailscale)</span>'; return }
+            const devs = s.devices || []
+            el.innerHTML = 'On your VPS:<br>&nbsp;&nbsp;<code>ANDROID_ADB_SERVER_SOCKET=tcp:<span style="color:var(--brand)">' + s.endpoint + '</span> adb devices</code><br>' +
+                (devs.length
+                    ? '<span style="color:var(--text-tertiary)">VPS will see ' + devs.length + ' USB phone' + (devs.length > 1 ? 's' : '') + ': ' + devs.join(', ') + '</span>'
+                    : '<span style="color:var(--text-tertiary)">No USB phones attached yet — plug one in.</span>')
+        } catch (_) { el.textContent = '' }
+    }
+    document.getElementById('settingUsbVpsBridge')?.addEventListener('change', async (e) => {
+        try { await window.fleet.setAppSetting?.('usb_vps_bridge', !!e.target.checked) } catch (_) {}
+        const el = document.getElementById('usbVpsEndpoints')
+        if (e.target.checked && el) el.innerHTML = '<span style="color:var(--text-tertiary)">starting relay…</span>'
+        setTimeout(renderUsbVpsEndpoints, 3500)
+    })
+    document.getElementById('settingReactDashboard')?.addEventListener('change', async (e) => {
+        try { await window.fleet.setAppSetting?.('react_dashboard', !!e.target.checked) } catch (_) {}
+    })
+    document.getElementById('clearSmspoolKeyBtn')?.addEventListener('click', async () => {
+        try {
+            const result = await window.fleet.setAppSetting?.('smspool_api_key', '')
+            if (result?.success !== true) {
+                setToast('clear failed: ' + (result?.error || 'no acknowledgment'), 'err')
+                return
+            }
+            smspoolConfigured = false
+            renderSmspoolSetting()
+            setToast('smspool key cleared', 'ok')
+        } catch (e) { setToast('clear failed: ' + (e?.message || e), 'err') }
+    })
+    document.getElementById('saveSettingsBtn')?.addEventListener('click', async () => {
+        const v = (document.getElementById('settingSmspoolKey')?.value || '').trim()
+        if (!v) {
+            setToast(smspoolConfigured ? 'enter a replacement key or use Clear key' : 'enter a smspool API key', 'err')
+            return
+        }
+        try {
+            const r = await window.fleet.setAppSetting?.('smspool_api_key', v)
+            if (r?.success !== true) { setToast('save failed: ' + (r?.error || 'no acknowledgment'), 'err'); return }
+            smspoolConfigured = true
+            renderSmspoolSetting()
+            setToast('smspool key saved', 'ok')
+            document.getElementById('settingsModal').classList.remove('show')
+        } catch (e) { setToast('save failed: ' + (e?.message || e), 'err') }
+    })
+
+    document.getElementById('saveTextverifiedBtn')?.addEventListener('click', async () => {
+        if (textverifiedSaving) return
+        const key = document.getElementById('settingTextverifiedKey').value.trim()
+        const username = document.getElementById('settingTextverifiedUsername').value.trim()
+        if ((!key && !textverifiedKeyConfigured) || (!username && !textverifiedUsernameConfigured)) {
+            setToast('enter both your TextVerified API key and API username', 'err')
+            return
+        }
+        if (!key && !username) { setToast('enter a replacement credential or use Clear TextVerified', 'err'); return }
+        textverifiedSaving = true
+        try {
+            for (const [setting, value] of [['textverified_api_key', key], ['textverified_api_username', username]]) {
+                if (!value) continue
+                const result = await window.fleet.setAppSetting?.(setting, value)
+                if (result?.success !== true) throw new Error(result?.error || 'no acknowledgment')
+                if (setting === 'textverified_api_key') textverifiedKeyConfigured = true
+                else textverifiedUsernameConfigured = true
+            }
+            renderTextverifiedSetting()
+            setToast('TextVerified credentials saved', 'ok')
+        } catch (error) {
+            renderTextverifiedSetting()
+            setToast('save failed: ' + error.message, 'err')
+        } finally { textverifiedSaving = false }
+    })
+    document.getElementById('clearTextverifiedBtn')?.addEventListener('click', async () => {
+        if (textverifiedSaving) return
+        textverifiedSaving = true
+        try {
+            for (const setting of ['textverified_api_key', 'textverified_api_username']) {
+                const result = await window.fleet.setAppSetting?.(setting, '')
+                if (result?.success !== true) throw new Error(result?.error || 'no acknowledgment')
+                if (setting === 'textverified_api_key') textverifiedKeyConfigured = false
+                else textverifiedUsernameConfigured = false
+            }
+            renderTextverifiedSetting()
+            setToast('TextVerified credentials cleared', 'ok')
+        } catch (error) {
+            renderTextverifiedSetting()
+            setToast('clear failed: ' + error.message, 'err')
+        } finally { textverifiedSaving = false }
+    })
+
+    // ==================== 2.17.14: phone-auth-wait overlay ====================
+    // When the backend launchOne hits an unauthorized phone, it auto-fires
+    // disconnect + reconnect (which re-pops the "Allow USB debugging" dialog
+    // on the phone) then polls `adb devices` for up to 60s. While that runs
+    // we show this modal so the user knows exactly what to do — they only
+    // need to tap once on the phone, no commands or extra clicks.
+    const authWaitModal = document.getElementById('authWaitModal')
+    const authWaitPhone = document.getElementById('authWaitPhone')
+    const authWaitCountdown = document.getElementById('authWaitCountdown')
+    const authWaitClose = document.getElementById('authWaitClose')
+    let authWaitTimer = null
+    let authWaitTarget = null
+
+    function hideAuthWait() {
+        authWaitModal.classList.remove('show')
+        if (authWaitTimer) { clearInterval(authWaitTimer); authWaitTimer = null }
+        authWaitTarget = null
+    }
+    authWaitClose.addEventListener('click', hideAuthWait)
+
+    window.fleet?.onPhoneAuthWait?.((payload) => {
+        authWaitTarget = payload?.target || null
+        authWaitPhone.textContent = payload?.phone || 'phone'
+        authWaitModal.classList.add('show')
+        let remainingMs = Number(payload?.timeoutMs) || 60_000
+        const tick = () => {
+            const s = Math.max(0, Math.ceil(remainingMs / 1000))
+            authWaitCountdown.textContent = s > 0
+                ? `Auto-cancels in ${s}s`
+                : 'Almost done — finishing up…'
+            remainingMs -= 1000
+        }
+        tick()
+        if (authWaitTimer) clearInterval(authWaitTimer)
+        authWaitTimer = setInterval(tick, 1000)
+    })
+
+    window.fleet?.onPhoneAuthDone?.((payload) => {
+        if (!payload) return
+        if (payload.ok) {
+            setToast(`${payload.phone || 'phone'} authorized — launching mirror`, 'ok')
+        } else {
+            setToast(
+                `${payload.phone || 'phone'}: no Allow tap detected — wake the phone and click Launch again`,
+                'err',
+            )
+        }
+        hideAuthWait()
+        // Refresh the list so any state changes show up
+        try { renderList() } catch (_) {}
+    })
+
+    // ==================== Feature 3: Plugin picker ====================
+    // Device -> plugin -> command -> Run, backed by
+    // <userData>/shadowphone/plugins.yaml (window.fleet.plugins.*).
+    const pluginsModal = document.getElementById('pluginsModal')
+    const pluginDeviceSelect = document.getElementById('pluginDeviceSelect')
+    const pluginSelect = document.getElementById('pluginSelect')
+    const pluginPreview = document.getElementById('pluginPreview')
+    const pluginWarning = document.getElementById('pluginWarning')
+    let pluginCatalog = []   // last-loaded plugins.yaml entries
+    let pluginPhones = []    // last-loaded phone list, for the device dropdown
+
+    function renderPluginPreview() {
+        const plugin = pluginCatalog.find(p => p.id === pluginSelect.value)
+        const phone = pluginPhones.find(p => p.udid === pluginDeviceSelect.value)
+        if (!plugin) { pluginPreview.textContent = ''; return }
+        const deviceId = phone ? (phone.tailnetIp ? `${phone.tailnetIp}:${phone.port || 5555}` : phone.udid) : '(no device)'
+        const deviceName = phone ? (phone.nickname || phone.udid) : ''
+        const preview = [plugin.command, ...plugin.args]
+            .map(t => String(t).replace('{device.id}', deviceId).replace('{device.name}', deviceName))
+            .join(' ')
+        pluginPreview.textContent = preview
+    }
+
+    async function openPluginsModal() {
+        pluginWarning.textContent = ''
+        pluginPreview.textContent = ''
+        pluginDeviceSelect.innerHTML = '<option>loading…</option>'
+        pluginSelect.innerHTML = '<option>loading…</option>'
+        pluginsModal.classList.add('show')
+
+        const [phones, listResult] = await Promise.all([
+            window.fleet.getPhones().catch(() => []),
+            window.fleet.plugins.list().catch(e => ({ ok: false, error: e?.message || String(e), plugins: [] })),
+        ])
+        pluginPhones = phones || []
+        pluginCatalog = listResult?.plugins || []
+
+        pluginDeviceSelect.innerHTML = pluginPhones.length
+            ? pluginPhones.map(p => `<option value="${escapeHtml(p.udid)}">${escapeHtml(p.nickname || p.udid)}</option>`).join('')
+            : '<option value="">No phones detected</option>'
+
+        pluginSelect.innerHTML = pluginCatalog.length
+            ? pluginCatalog.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.label)}</option>`).join('')
+            : '<option value="">No plugins configured</option>'
+
+        if (listResult?.ok === false) {
+            pluginWarning.textContent = 'Failed to load plugins.yaml: ' + (listResult.error || 'unknown error')
+        } else if (listResult?.warning) {
+            pluginWarning.textContent = 'plugins.yaml had an issue, showing defaults: ' + listResult.warning
+        }
+        renderPluginPreview()
+    }
+    document.getElementById('openPlugins')?.addEventListener('click', openPluginsModal)
+    pluginDeviceSelect.addEventListener('change', renderPluginPreview)
+    pluginSelect.addEventListener('change', renderPluginPreview)
+
+    document.getElementById('pluginRunBtn')?.addEventListener('click', async () => {
+        const pluginId = pluginSelect.value
+        const phone = pluginPhones.find(p => p.udid === pluginDeviceSelect.value)
+        if (!pluginId) { setToast('pick a plugin first', 'err'); return }
+        if (!phone) { setToast('pick a device first', 'err'); return }
+        setToast(`running ${pluginId} on ${phone.nickname || phone.udid} …`)
+        try {
+            const r = await window.fleet.plugins.run(pluginId, phone)
+            if (r?.ok === false) { setToast('plugin failed: ' + (r.error || 'unknown'), 'err'); return }
+            setToast(r?.alreadyRunning ? 'already running' : `launched (pid ${r.pid})`, 'ok')
+        } catch (e) { setToast('plugin failed: ' + (e?.message || e), 'err') }
+    })
+
+    document.getElementById('pluginEditConfigBtn')?.addEventListener('click', async () => {
+        try {
+            const r = await window.fleet.plugins.editConfig()
+            if (r?.ok === false) { setToast('could not open plugins.yaml: ' + (r.error || 'unknown'), 'err'); return }
+            setToast('opened plugins.yaml', 'ok')
+        } catch (e) { setToast('could not open plugins.yaml: ' + (e?.message || e), 'err') }
+    })
+
+    // Initial load + auto-refresh every 10s
+    refresh()
+    const refreshTimer = setInterval(refresh, 10_000)
+    window.addEventListener('beforeunload', () => clearInterval(refreshTimer))
+
+    console.log('[fleet-panel] ready (2.17.14 with auto-auth)')
+</script>
+</body>
+</html>

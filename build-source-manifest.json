@@ -1,0 +1,1612 @@
+[
+  {
+    "file": ".gitattributes",
+    "bytes": 8,
+    "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+  },
+  {
+    "file": ".github/scripts/verify-mac-build.py",
+    "bytes": 5265,
+    "sha256": "5c5976a675eb67c1e2238535e0bba3c662a50dd959fcb1a8480183565ceacca6"
+  },
+  {
+    "file": ".github/workflows/build-mac-isolated.yml",
+    "bytes": 2742,
+    "sha256": "35d44db04cbb30de7a74289e90f81a53309252d79d3a5cbdc96ff9e6ad11119e"
+  },
+  {
+    "file": "electron/afterPack.js",
+    "bytes": 3310,
+    "sha256": "c9677c83188b108c1caf0876a0d55342fba8cf6c5a23ad6952379adc2df36598"
+  },
+  {
+    "file": "electron/assets/icon-mac.png",
+    "bytes": 44256,
+    "sha256": "57aa155cfea216097c197c196389ee9f85a04737f66884d5814fb724292e4bfc"
+  },
+  {
+    "file": "electron/assets/icon.ico",
+    "bytes": 6511,
+    "sha256": "e2712c6bd0b828345c2f1fe87af8c898742ac2dd906ba03d02f1cb267266c964"
+  },
+  {
+    "file": "electron/assets/icon.png",
+    "bytes": 9311,
+    "sha256": "8bf9170d05cbce0d0c4a169180392fa0a17b06309c234de287aa7815adc97765"
+  },
+  {
+    "file": "electron/assets/installerHeader.bmp",
+    "bytes": 1189,
+    "sha256": "63069eb69906f4ed31ded91c146e642d45f57a3f78570c568ac71d1c85d45bde"
+  },
+  {
+    "file": "electron/assets/installerHeader.png",
+    "bytes": 440,
+    "sha256": "191361f2dd6a80eccf0454b5fb0522c797b1384c8a263d8ce8790aae7864e7fb"
+  },
+  {
+    "file": "electron/assets/installerSidebar.bmp",
+    "bytes": 8666,
+    "sha256": "47915caf7bc999000a561af3b830baa18a5b1bf5da073b395c0d0bcb10ad0946"
+  },
+  {
+    "file": "electron/assets/installerSidebar.png",
+    "bytes": 7301,
+    "sha256": "7729c43929606c90172b6e360097fa6b2c05ad2917fb5e18aff7937a0fc434f4"
+  },
+  {
+    "file": "electron/dashboard-src/index.html",
+    "bytes": 320,
+    "sha256": "8b80f325838c2a951ce536b72454d03a9e6ea5f7d7c8cb9f3565cc19c56c7cb8"
+  },
+  {
+    "file": "electron/dashboard-src/src/AccountRow.tsx",
+    "bytes": 17176,
+    "sha256": "05c8456725dcac96c6e69375d96a0e0e4672549558759c5c92c8465daedaacb0"
+  },
+  {
+    "file": "electron/dashboard-src/src/AddProfileModal.tsx",
+    "bytes": 4726,
+    "sha256": "67f751c36bb83641717087996bc084c53e2ce97d783bcad8faafc2981dc3b4a2"
+  },
+  {
+    "file": "electron/dashboard-src/src/Analytics.tsx",
+    "bytes": 12180,
+    "sha256": "5485e4f9d1451c1b24739c96095d9c7806aea8f00afb6303f9ab13467394be75"
+  },
+  {
+    "file": "electron/dashboard-src/src/App.tsx",
+    "bytes": 27664,
+    "sha256": "bdffdbaf5fb6e88165b5a992a7b855cac63183cd21cf0930dfa67ec3019d5fe0"
+  },
+  {
+    "file": "electron/dashboard-src/src/BulkBar.tsx",
+    "bytes": 7032,
+    "sha256": "916f8c04a1df6d747a23db44cd4bd521973ee8b473c1693b4170f6f01efb3323"
+  },
+  {
+    "file": "electron/dashboard-src/src/BulkCreateModal.tsx",
+    "bytes": 20204,
+    "sha256": "02ed92a14572493b49ffb3c7af623a1507ad84b55206f8906c0e55a275e9941d"
+  },
+  {
+    "file": "electron/dashboard-src/src/BulkRetimeModal.tsx",
+    "bytes": 6277,
+    "sha256": "3147e5e8509c644014d5f792c5e8c24ce91fabcc8537408537989d4e3d5360cb"
+  },
+  {
+    "file": "electron/dashboard-src/src/CommandCenter.tsx",
+    "bytes": 31510,
+    "sha256": "53cd10b7877ae1194342de1384febc4ce0d3b9b7ce1a122e2830c7bb565c207c"
+  },
+  {
+    "file": "electron/dashboard-src/src/CommandPalette.tsx",
+    "bytes": 9722,
+    "sha256": "4eff05205685ff1042cfffc2cc8262af3cdb42b7e6d381bfb3429298744e613c"
+  },
+  {
+    "file": "electron/dashboard-src/src/ConfigureModal.tsx",
+    "bytes": 10344,
+    "sha256": "756ce9fbca38e01a8a01d97c372ba2deb77956db7d71a1a3d106312c3a2300ad"
+  },
+  {
+    "file": "electron/dashboard-src/src/CreateIgModal.tsx",
+    "bytes": 25019,
+    "sha256": "67d2a18a860b1b42af3b7005ef8f5acdd4ff015409e57ee9f412c84ceabeb552"
+  },
+  {
+    "file": "electron/dashboard-src/src/DashContext.tsx",
+    "bytes": 1920,
+    "sha256": "ca754f1bbe447fecc06a62a3a4a287478c3e9ece6b64dba045cee25649860908"
+  },
+  {
+    "file": "electron/dashboard-src/src/DeleteModal.tsx",
+    "bytes": 5355,
+    "sha256": "ba33e691f34eb291339d767a9c5c134b98d84bd2d30cde6286d39753d65e50b2"
+  },
+  {
+    "file": "electron/dashboard-src/src/edit-profile-payload.ts",
+    "bytes": 2313,
+    "sha256": "54f29076a11c4004dfafbf51ce951672836a980f65757857380e27fba3a49beb"
+  },
+  {
+    "file": "electron/dashboard-src/src/EditProfileModal.tsx",
+    "bytes": 10196,
+    "sha256": "f1e9ef6e558d2ff2719938cc2d9597c38a31b3343b206721b5e11d704dcdec1f"
+  },
+  {
+    "file": "electron/dashboard-src/src/exceptions.ts",
+    "bytes": 11398,
+    "sha256": "2a47690f8c8ca267157a31efa647b0d81462ef974809dc2066547840c59f6c28"
+  },
+  {
+    "file": "electron/dashboard-src/src/Findbar.tsx",
+    "bytes": 3477,
+    "sha256": "c0e4182fed0cec5ae9592b7fefe543d71374fdc259a0e011d9f882d94d5e1686"
+  },
+  {
+    "file": "electron/dashboard-src/src/FleetPulse.tsx",
+    "bytes": 4068,
+    "sha256": "a25ad102e9a5302260cbf73944737fd3201f64baede9abfb24b21ae962aa5377"
+  },
+  {
+    "file": "electron/dashboard-src/src/HealthBand.tsx",
+    "bytes": 7628,
+    "sha256": "1d2dad128fba41e1137573dd591b15351624f21d46f7d70f5b61715d3a74106e"
+  },
+  {
+    "file": "electron/dashboard-src/src/index.css",
+    "bytes": 148076,
+    "sha256": "90743d33b674103598793506c2b768c20225883f8dbc7470f24d961656929f43"
+  },
+  {
+    "file": "electron/dashboard-src/src/ipc.ts",
+    "bytes": 1497,
+    "sha256": "960b13aaf3be6a29ce7cd6140d76f1eaa3d847644bc12d3ec7bcb540a7485189"
+  },
+  {
+    "file": "electron/dashboard-src/src/IssueChip.tsx",
+    "bytes": 985,
+    "sha256": "f22a66d1f9fc3c52c98f9572eebd8e1291fc52be19146b40036a10c802580e47"
+  },
+  {
+    "file": "electron/dashboard-src/src/LiveCreationLog.tsx",
+    "bytes": 4313,
+    "sha256": "af61a1150713596d5836b16158adc8a3351ad7a88037504480f870a84bd701c7"
+  },
+  {
+    "file": "electron/dashboard-src/src/main.tsx",
+    "bytes": 235,
+    "sha256": "3262393cd2437423ba144866395d2f04dff33dd9168a91abd2a9091734757d62"
+  },
+  {
+    "file": "electron/dashboard-src/src/ModelGroup.tsx",
+    "bytes": 2676,
+    "sha256": "35ee7ed23a11b52cbe79970c14329e0702fe1bc7b9787bc78c038842a34b0722"
+  },
+  {
+    "file": "electron/dashboard-src/src/PhoneTimeLane.tsx",
+    "bytes": 4275,
+    "sha256": "690f9f27d4cb980edcbd5d9afe233b872c2431aa4e9e592a467a5fa2a20c1335"
+  },
+  {
+    "file": "electron/dashboard-src/src/ProfileCard.tsx",
+    "bytes": 10827,
+    "sha256": "53bbefd9efa50fc436216a72783128022fda4cfdd3fc417c2e51aedea87b2f8b"
+  },
+  {
+    "file": "electron/dashboard-src/src/retime-util.ts",
+    "bytes": 5771,
+    "sha256": "c6a38cfa56e1a7db5c1042cb6d0ccbdd45c54c068312e2cb78a43313828cd8fb"
+  },
+  {
+    "file": "electron/dashboard-src/src/schedule-modules.d.ts",
+    "bytes": 1157,
+    "sha256": "e55c50077cab204e0871206fe810a469758b344c4baa2830abf5f47845afcb48"
+  },
+  {
+    "file": "electron/dashboard-src/src/scheduleHelpers.ts",
+    "bytes": 3357,
+    "sha256": "12aaf13e3f4036448bae9039ca94ff0a27e26b2587b2167bb726830d11ee64c0"
+  },
+  {
+    "file": "electron/dashboard-src/src/ScheduleOverlay.tsx",
+    "bytes": 21267,
+    "sha256": "c0a6ee04e38856f290c763553094c64164a632fa52e594fd4cf92beda1f78e5e"
+  },
+  {
+    "file": "electron/dashboard-src/src/States.tsx",
+    "bytes": 1835,
+    "sha256": "d1d3553022e3c0033ae04cf4e0f183c1a41911c66c95272b60c82fd26d314fe8"
+  },
+  {
+    "file": "electron/dashboard-src/src/StatsDrawer.tsx",
+    "bytes": 11903,
+    "sha256": "a00f1785daf12b7f14c01f16082248bc993ab8e04663c331e76ad59fcc95f846"
+  },
+  {
+    "file": "electron/dashboard-src/src/toast.ts",
+    "bytes": 1906,
+    "sha256": "faa73b03747b89103c9c9f1a4595309ebc30f4cc0484eab1b96d746493d2a755"
+  },
+  {
+    "file": "electron/dashboard-src/src/Topbar.tsx",
+    "bytes": 4014,
+    "sha256": "6b4215a7a9e05f23d12ccfa4dba0268ce49f138561bfaae31049b70019bd8527"
+  },
+  {
+    "file": "electron/dashboard-src/src/types.ts",
+    "bytes": 4327,
+    "sha256": "6e362ef56de6be66c1ca3ec4420b220b14b667cca7c8d36d14aa5e1bf169096d"
+  },
+  {
+    "file": "electron/dashboard-src/src/utils.ts",
+    "bytes": 6864,
+    "sha256": "b8e780b56034b986e6f8ee75c5a969f9eff27eaac27a561b185dd5e920599d2b"
+  },
+  {
+    "file": "electron/dashboard-src/tsconfig.json",
+    "bytes": 425,
+    "sha256": "1f8dae17cb4d359909ec3c15e0c5a382e78413c4a66978b5f322c7c1086d85b1"
+  },
+  {
+    "file": "electron/dashboard-src/vite.config.ts",
+    "bytes": 1453,
+    "sha256": "951ddfb36f5bf5cd107e61c79b8b5171714331ef3f2123e240613a065789d7c6"
+  },
+  {
+    "file": "electron/dashboard-src/vitest.config.ts",
+    "bytes": 730,
+    "sha256": "662f7d579c55d1cfc8795e3d900213cb92a690afa10d1674381eb4a7b9ee61d0"
+  },
+  {
+    "file": "electron/fleet-panel-preload.js",
+    "bytes": 4608,
+    "sha256": "a8c5fa7c7d7a9394f76cbfb02e773ee61e2e56330155388093121afe510535a9"
+  },
+  {
+    "file": "electron/fleet-panel.html",
+    "bytes": 91786,
+    "sha256": "55a3e94e6ab16fd5faa8f7224466e637172b1a79ab72675790e6f162e353c218"
+  },
+  {
+    "file": "electron/handlers/account-creation-handlers.js",
+    "bytes": 77704,
+    "sha256": "4a99e3b6eb63e48f51a6f550094d121c169420e4741826a5a2b23d5d568e7da1"
+  },
+  {
+    "file": "electron/handlers/bulk-creation-handlers.js",
+    "bytes": 4091,
+    "sha256": "236c5934b3c5abad1df9be715e4e6b8e084920266c7de82f6847c44778172419"
+  },
+  {
+    "file": "electron/handlers/content-handlers.js",
+    "bytes": 44099,
+    "sha256": "53d8cf10044a36aba342fb9e3d2a59aeca23c2e84bb842b65964d09eab1147d3"
+  },
+  {
+    "file": "electron/handlers/device-handlers.js",
+    "bytes": 53975,
+    "sha256": "ff79b7056354db8205f7b24de23c1aaf337aea91de2c0a4d0bedd6ec5446b85e"
+  },
+  {
+    "file": "electron/handlers/index.js",
+    "bytes": 1693,
+    "sha256": "2ae1c42b4cc32ed68de1c28e650a09a05c2786d03fd41421be5cebc5f9165c3d"
+  },
+  {
+    "file": "electron/handlers/insights-handlers.js",
+    "bytes": 6437,
+    "sha256": "a94cda857fb4bd308df9d55b17cce87688a6ce8d060c4d7c92cc4fa88ea943a8"
+  },
+  {
+    "file": "electron/handlers/logcat-handlers.js",
+    "bytes": 4318,
+    "sha256": "d22db4d271b9e85d5fd9e625f01551c7d7c898e3814387efd30a1aa3b5d95092"
+  },
+  {
+    "file": "electron/handlers/model-handlers.js",
+    "bytes": 23758,
+    "sha256": "cdfbc0962d357593ec69bbcd9fb5aeb4dcc1451938341b7cbb1a0ecd6dbf471d"
+  },
+  {
+    "file": "electron/handlers/module-handlers.js",
+    "bytes": 57351,
+    "sha256": "c725529c5ae95a2b8f1463776b53be330f75cd9d134637e4669e673d53c0a919"
+  },
+  {
+    "file": "electron/handlers/pairing-handlers.js",
+    "bytes": 5782,
+    "sha256": "7ffcd431db628d69ff1ed4a3a6122f2ffa1ddf6eef2c295055d23235fd0d7842"
+  },
+  {
+    "file": "electron/handlers/plugin-handlers.js",
+    "bytes": 3924,
+    "sha256": "90509b9d04236b17b1ef629c28057e5e1208d8a9dd9052f27e0482c2825ca9d0"
+  },
+  {
+    "file": "electron/handlers/portal-handlers.js",
+    "bytes": 19041,
+    "sha256": "664922ae1dc3a55f8508f553da0447eea032b9bf9acc16d392c6fcb5c737c424"
+  },
+  {
+    "file": "electron/handlers/profile-edit-handlers.js",
+    "bytes": 26592,
+    "sha256": "4671a437f544378931aa57633173c0db403a2d2c9d3156f9ce83cee8ffcacb8b"
+  },
+  {
+    "file": "electron/handlers/profile-handlers.js",
+    "bytes": 92098,
+    "sha256": "2236d2381cef6cf7f5ddbb4ada075d92e6e43ed261c6b71f780ec8a986a7020e"
+  },
+  {
+    "file": "electron/handlers/schedule-exceptions-handler.js",
+    "bytes": 12664,
+    "sha256": "5d43ac5db9fd670d78b7aa73e6997bdbc58299e8e8110e6c029e503acc73fbd1"
+  },
+  {
+    "file": "electron/handlers/schedule-handlers.js",
+    "bytes": 18652,
+    "sha256": "9f2c1de1061aa1959efc12910028d3de42e02f08b081d2b28507a14769c4e1d0"
+  },
+  {
+    "file": "electron/handlers/scrcpy-launcher-handlers.js",
+    "bytes": 4187,
+    "sha256": "527f2420450501796dca3e4d5603ed00da204b9a54c2489c988c3d5a8bf343e6"
+  },
+  {
+    "file": "electron/handlers/sidebar-content-handlers.js",
+    "bytes": 44323,
+    "sha256": "6e6fc2a33299aea4016a0da61684e7c5e680c17a63754cf960481e138c532bfc"
+  },
+  {
+    "file": "electron/handlers/system-handlers.js",
+    "bytes": 167545,
+    "sha256": "c21080c98178aaca2a2c55d55badc545eb791299600f4fa6b98c3578cdfd4cbb"
+  },
+  {
+    "file": "electron/lib/account-identity-migration.js",
+    "bytes": 10887,
+    "sha256": "e271bea03fdbc40fde67207ca866269cfe477db146bdcb26991204fbf183c5c0"
+  },
+  {
+    "file": "electron/lib/account-switcher-parser.js",
+    "bytes": 2435,
+    "sha256": "fe3437c9f93bc2c9f068602359f9eef707b7b4feb066dd5b64dab48077f5c45f"
+  },
+  {
+    "file": "electron/lib/adb-forward.js",
+    "bytes": 2147,
+    "sha256": "81ce9cab2e2965c247c4e2e4075240f3f053b2d81fbfe2503bfd15194e55ba34"
+  },
+  {
+    "file": "electron/lib/adb-util.js",
+    "bytes": 22178,
+    "sha256": "b19f32a68653a4fbdc40e58ae14598dca90f2f5f591566078d325b284a8055ad"
+  },
+  {
+    "file": "electron/lib/analytics-charts.js",
+    "bytes": 6526,
+    "sha256": "85019f3d40e98cf7af2379d4bba76107060f64cb34e877f4d8054a3765eeb009"
+  },
+  {
+    "file": "electron/lib/app-auth-fetch.js",
+    "bytes": 7559,
+    "sha256": "92d0b8f33fa07124169c096af46af30b117bcaa0f9116b69a25b6d0a6170d5c4"
+  },
+  {
+    "file": "electron/lib/app-settings-store.js",
+    "bytes": 4685,
+    "sha256": "20e0f452e46104ab02a3a904c45f8db8754ef15fee0e818603083943b05fc35b"
+  },
+  {
+    "file": "electron/lib/bulk-account-creator.js",
+    "bytes": 15501,
+    "sha256": "66938dcdea932f5341f3f44e152f9338cf65e9eebc31740d6e9b9439663e5d5b"
+  },
+  {
+    "file": "electron/lib/bulk-creation-select.js",
+    "bytes": 2900,
+    "sha256": "8f9fe3c1286bad8c859d4b1f0794332064e96c76f9ee920b828204f06753f5bb"
+  },
+  {
+    "file": "electron/lib/bulk-creation-store.js",
+    "bytes": 3925,
+    "sha256": "3174ce14f2247c1dc8faffdee0a0074f9b1d4aaceef6498ddbe55f650dbf4158"
+  },
+  {
+    "file": "electron/lib/cloudflared-tunnel.js",
+    "bytes": 6983,
+    "sha256": "f52b55845bd6da8fd20f144f26c18ae45cb55573c6f8317fe1741602fb913abd"
+  },
+  {
+    "file": "electron/lib/companion-auto-installer.js",
+    "bytes": 29397,
+    "sha256": "aa7782adfe74e55d562217e0cc5a7fcbb95bc4e1b5f98f378b3072be0884748b"
+  },
+  {
+    "file": "electron/lib/companion-discovery.js",
+    "bytes": 7115,
+    "sha256": "88298037a2e0f6c412a93ca66a33fcdb25b3a227c163aedb4e98bac4db690c3e"
+  },
+  {
+    "file": "electron/lib/content-counter.js",
+    "bytes": 4557,
+    "sha256": "4827a9e51be08c839a2ed520edac055cfa22af51dd41adcae266cd60a2536dbb"
+  },
+  {
+    "file": "electron/lib/content-paths.js",
+    "bytes": 22747,
+    "sha256": "a24044b449c480a89217ef9bb404052150966426467aec2769b696af9d2935ad"
+  },
+  {
+    "file": "electron/lib/dependency-manager.js",
+    "bytes": 22078,
+    "sha256": "cdc87389319c6c0e8e1a052106b1628db4b733fcc7066b796ad1bd13b45a3398"
+  },
+  {
+    "file": "electron/lib/device-health.js",
+    "bytes": 10869,
+    "sha256": "5e791597cd4e12191bb01af5926a4d782d71cc54677f2470f35d006d8966ee52"
+  },
+  {
+    "file": "electron/lib/device-identity.js",
+    "bytes": 13603,
+    "sha256": "46e89f01db1e7a7564468ad8a378ad15780d06147b98b7a1f83de544e79cccb9"
+  },
+  {
+    "file": "electron/lib/device-watchdog.js",
+    "bytes": 50734,
+    "sha256": "d483513184a95848120c1384f2e671efd55cff36664bf8892a6d0fccc8ffb3ab"
+  },
+  {
+    "file": "electron/lib/diagnostics.js",
+    "bytes": 14881,
+    "sha256": "2e9b2d9cf4789467e1291f7c243eb240ea4004faebc1fb0ba7d6c41be9440660"
+  },
+  {
+    "file": "electron/lib/fleet-dashboard-window.js",
+    "bytes": 8105,
+    "sha256": "2c68c6eec429757ad35858ed5bb9ce394af03435328f68c20b6badac2dad2f8c"
+  },
+  {
+    "file": "electron/lib/fleet-panel.js",
+    "bytes": 2327,
+    "sha256": "638ff09ac9e3472e33babfb3bd78c7438f933d32ecb1d01a8d89e6413521459d"
+  },
+  {
+    "file": "electron/lib/insights-store.js",
+    "bytes": 4992,
+    "sha256": "687ed5555b1d389e96d50702fc3a199e93a7c10af6f1811e10024d0e064f1788"
+  },
+  {
+    "file": "electron/lib/insights-sweep.js",
+    "bytes": 21484,
+    "sha256": "cf2c19c25de609341a7ae8583400fdb43cf8d1492fab42bd3458c35cfdffbc40"
+  },
+  {
+    "file": "electron/lib/instagram-trend-finder.js",
+    "bytes": 8275,
+    "sha256": "de965b95bb2a046922bf4dfe6f08e345e5537fd814e6a6781af2e963e718cb75"
+  },
+  {
+    "file": "electron/lib/launcher-log.js",
+    "bytes": 2078,
+    "sha256": "f6eb97c3b512356d89171d397073565b7f877fa5bff26f6683649b696fb531c6"
+  },
+  {
+    "file": "electron/lib/local-brain.js",
+    "bytes": 70829,
+    "sha256": "8b9987b7af73c09003f49866f3da283fd09d315297c77882dbd879e8604f6cf7"
+  },
+  {
+    "file": "electron/lib/local-downloader.js",
+    "bytes": 6314,
+    "sha256": "eea3e862f9f3b3b9c1bb6ad3f3dd67898e9c06d53455c09d4deeb537ef27ce7b"
+  },
+  {
+    "file": "electron/lib/local-fingerprinter.js",
+    "bytes": 25881,
+    "sha256": "2ea357958d3dd00d5b3f6c274fd0194a686f492c260b9c5ce9614859a139525d"
+  },
+  {
+    "file": "electron/lib/local-modules-shared.js",
+    "bytes": 31994,
+    "sha256": "b64abff98635d7123904228cebc03e530175d9a83b6747b46a608c3c4dcabc08"
+  },
+  {
+    "file": "electron/lib/local-modules.js",
+    "bytes": 5366,
+    "sha256": "bb51d0e52a639f8c6a2b3196e3cb3a1edbaff0dd91cabef1fc86ba46f539d409"
+  },
+  {
+    "file": "electron/lib/local-templater.js",
+    "bytes": 34847,
+    "sha256": "a42260a70f0aa672d67a96430abc507d51c3ad6449d080b991b21e2daf2c1c21"
+  },
+  {
+    "file": "electron/lib/logcat-stream.js",
+    "bytes": 6941,
+    "sha256": "829265cda8024e78eb3269376eba8436d62fb1790104d023ddf0faa55cb6cf16"
+  },
+  {
+    "file": "electron/lib/media-mime.js",
+    "bytes": 1420,
+    "sha256": "3137b7b6b89178d1d3355214179d8d956bf9aba50af1275c6ffd4f6d390cf3ea"
+  },
+  {
+    "file": "electron/lib/mirror-frame-overlay.js",
+    "bytes": 7349,
+    "sha256": "5477de0c216a3e3af60f588d8ee491e5163e2dee0b8ff8ac928e73b61ca4dcfd"
+  },
+  {
+    "file": "electron/lib/mirror-toolbar.js",
+    "bytes": 53424,
+    "sha256": "2183289ed3bb4148467acd2bb69ceeb3c76683386719a74407746b2d6160202f"
+  },
+  {
+    "file": "electron/lib/models-dashboard-render.js",
+    "bytes": 3618,
+    "sha256": "433f2600bf85bd9edd9a6711e7592ed37d2fc187ef01552e2bed14a326b07fd2"
+  },
+  {
+    "file": "electron/lib/models-dashboard-scan.js",
+    "bytes": 19821,
+    "sha256": "0a8827f8d0918e69e5c5c448d9f4d2c28ed65886a785ce8db64c0fc84b03d6dd"
+  },
+  {
+    "file": "electron/lib/modules/account_insights.js",
+    "bytes": 30657,
+    "sha256": "0bf89e4a2898fcdda93daffa5162940eb314fb75d27680efb9c7f861fe536e96"
+  },
+  {
+    "file": "electron/lib/modules/airplane_toggle.js",
+    "bytes": 3953,
+    "sha256": "b21afb4326d7b538cf7488ae0a8a085a67fc17c48306909e6430dedfb05b6cb6"
+  },
+  {
+    "file": "electron/lib/modules/airtable_sync.js",
+    "bytes": 429,
+    "sha256": "7feb0266d526b655d9ed49a41ec19f612a92103ba8c33f55a94d270501d2861c"
+  },
+  {
+    "file": "electron/lib/modules/conditional.js",
+    "bytes": 2617,
+    "sha256": "b4ca240adba0189024f542f62b93fde79695947aede8778fe1631c9db0c3392a"
+  },
+  {
+    "file": "electron/lib/modules/content_manager.js",
+    "bytes": 427,
+    "sha256": "9eccf009f720df38c482557b6c19f3eb9fadf9e7a0a91d6071f8b38ed3474125"
+  },
+  {
+    "file": "electron/lib/modules/delay.js",
+    "bytes": 1430,
+    "sha256": "b9b7e6c04e98b04c36cce92757a19e3168506a9c26e77214610e7773d53da207"
+  },
+  {
+    "file": "electron/lib/modules/detect_accounts.js",
+    "bytes": 12351,
+    "sha256": "b93b6fcd7cdbcfc66dcd77999fd9be548d153c75593c8456787a3ceadcd26622"
+  },
+  {
+    "file": "electron/lib/modules/gallery_clean.js",
+    "bytes": 6653,
+    "sha256": "b2df3e3b34cdd0af6a05cead17b46ae662caf16077a5f04b0be897a2924e3748"
+  },
+  {
+    "file": "electron/lib/modules/gmail_logout.js",
+    "bytes": 2627,
+    "sha256": "331646e130f0a55250ddacabad183423f25224bee45b4cbb793c200054e3ed77"
+  },
+  {
+    "file": "electron/lib/modules/ig_account_switch.js",
+    "bytes": 11275,
+    "sha256": "4b4bed4abc2f67d9380ec129d9d3a61ab6af7189c699e67f30b5a1c61af0d368"
+  },
+  {
+    "file": "electron/lib/modules/ig_launcher.js",
+    "bytes": 5173,
+    "sha256": "2e42616012b32b13718a3226521a6b8995dcf5aabc8de69b165026c890361ec6"
+  },
+  {
+    "file": "electron/lib/modules/ig_logout.js",
+    "bytes": 6592,
+    "sha256": "2061f8bf906dee77496b4fa8ae29c03e9678d4519c757458db061b386924e84b"
+  },
+  {
+    "file": "electron/lib/modules/ig_status_check.js",
+    "bytes": 15401,
+    "sha256": "7babb6a356910c825e2ece26ce5566613c7b60124aa529be9b252e92e4d10da5"
+  },
+  {
+    "file": "electron/lib/modules/ig_verification_recovery.js",
+    "bytes": 4775,
+    "sha256": "469feeeadaf8f10be42b5cea19c1f133064c6c0d1cd65e051051ec5add583c8e"
+  },
+  {
+    "file": "electron/lib/modules/list_profiles.js",
+    "bytes": 1441,
+    "sha256": "3dbb7eec1c7316620700f59f33fd5ff34e9a1c958e52106174ff946b5fba1842"
+  },
+  {
+    "file": "electron/lib/modules/notification.js",
+    "bytes": 4139,
+    "sha256": "0b61b5ef662ae31f0d3ec8ec7d8df2755427e3041d5702e4d4003eecf916981b"
+  },
+  {
+    "file": "electron/lib/modules/profile_create.js",
+    "bytes": 1678,
+    "sha256": "8178114b504c62677eb2763416fda40b5ec2da9f56b6f2b460d5f6cd3bc8da02"
+  },
+  {
+    "file": "electron/lib/modules/profile_delete.js",
+    "bytes": 1383,
+    "sha256": "decb8b02d86b094c2fd1f08b98ec149f03f655892fb0d2e0166a90494ebfb90e"
+  },
+  {
+    "file": "electron/lib/modules/profile_switch.js",
+    "bytes": 9138,
+    "sha256": "be738f2ff63c24d5a45a1ef191f27cd1e1473292c480e42aa6796176036504e3"
+  },
+  {
+    "file": "electron/lib/modules/random_delay.js",
+    "bytes": 1481,
+    "sha256": "0cd7761ffb92444dd3b69015d28a96a152ae016db68b74dc2fdc1adfe1dac054"
+  },
+  {
+    "file": "electron/lib/modules/stats_scraper.js",
+    "bytes": 6512,
+    "sha256": "80c03e0645d03396fb32fa4d1606f1e4ad8494377293d96065121fb8e5170e71"
+  },
+  {
+    "file": "electron/lib/modules/vpn_connect.js",
+    "bytes": 10566,
+    "sha256": "24245517faf41cc316f85ac93d43a3676a95a967b0a79c92ec7c59c3d25a7abe"
+  },
+  {
+    "file": "electron/lib/modules/wake_unlock.js",
+    "bytes": 2913,
+    "sha256": "6f7819efbb328eed362d5dae4ee973fdce9065c54d7c2d3c95fb5ec4af7161a9"
+  },
+  {
+    "file": "electron/lib/originality-checker.js",
+    "bytes": 17476,
+    "sha256": "9269ea6f0db01c428ed5dc5ce83805cbb6d5948b406e1cf41fd5a7788ded2415"
+  },
+  {
+    "file": "electron/lib/phone-provision.js",
+    "bytes": 38823,
+    "sha256": "2ba25d22ec8f4b089cdc2f4b4b6a12bc914e7b0f8621b07d9c820dcee21435dc"
+  },
+  {
+    "file": "electron/lib/plugin-registry.js",
+    "bytes": 8818,
+    "sha256": "7c231bfbc2772d176ad7736f9bc2fdab31a4124e45baaed1f269724f8fbd051c"
+  },
+  {
+    "file": "electron/lib/portal-auth-proxy.js",
+    "bytes": 120576,
+    "sha256": "81e4b5b4d360cddb19d95b2523e20bcc097d28bc289550fa3c85427095c58457"
+  },
+  {
+    "file": "electron/lib/profile-edit-orchestrator.js",
+    "bytes": 7413,
+    "sha256": "1e1dc3604fb3902a802c637cafb146ec67c105af8f29ef9b04786f0879567dff"
+  },
+  {
+    "file": "electron/lib/registry-reconcile.js",
+    "bytes": 6150,
+    "sha256": "d2e8e070c541236a10ca67cde907f588f7e4ffc6d76433948065bc78b6ea2616"
+  },
+  {
+    "file": "electron/lib/schedule-client.js",
+    "bytes": 15575,
+    "sha256": "8e8cf8dd627e782230071e8072a7c5fb5283e6aca10d023911a909a87067611e"
+  },
+  {
+    "file": "electron/lib/schedule-engine.js",
+    "bytes": 49971,
+    "sha256": "776350e6deca3065050f76bf0048ad8c7b74786fe0b781cb9d7a254a4bdc446d"
+  },
+  {
+    "file": "electron/lib/scheduler-drawer.js",
+    "bytes": 4285,
+    "sha256": "491038fef7806a0dabd2a213053a76d29279ea2124d8715511ea4f99f2584113"
+  },
+  {
+    "file": "electron/lib/scrcpy-device-meta.js",
+    "bytes": 1291,
+    "sha256": "62c5efe5b501b98b1aceb666557b11ddb4e953aa3119da63a65f029a423c9a5f"
+  },
+  {
+    "file": "electron/lib/scrcpy-direct-proxy.js",
+    "bytes": 7838,
+    "sha256": "c1133107bb4cbfee00500765d199c1fbfc55db734563cc108666963205bd4262"
+  },
+  {
+    "file": "electron/lib/scrcpy-direct-source.js",
+    "bytes": 2249,
+    "sha256": "ade31b5d27260dda0c54b38afac3b25d73da4bd0f7dfd3ab033714299efd919f"
+  },
+  {
+    "file": "electron/lib/scrcpy-fanout.js",
+    "bytes": 30810,
+    "sha256": "0025136acc0b8faed0caaab579cc923b0b383ac0cd0115b53201131b5bdda596"
+  },
+  {
+    "file": "electron/lib/scrcpy-loading-overlay.js",
+    "bytes": 13320,
+    "sha256": "5ef524206ea9c56d7861ae0c74a1844b2bad6f234648eb05e4fc1474304bd047"
+  },
+  {
+    "file": "electron/lib/scrcpy-mac-installer.js",
+    "bytes": 8576,
+    "sha256": "c80de2ad40ec82e071dafe4f990521a27617c14d0a19f59f03e355126fc39820"
+  },
+  {
+    "file": "electron/lib/scrcpy-orphan-killer.js",
+    "bytes": 6820,
+    "sha256": "4eb0f80f261c1672694d6b824ffa9baa22ca4a7c8792356328b57ef6cc94b644"
+  },
+  {
+    "file": "electron/lib/scrcpy-protocol.js",
+    "bytes": 9101,
+    "sha256": "dd91d4cc365b7a52bcd5ec72483267cae541fe557fabe36bb191dbcfca5631a7"
+  },
+  {
+    "file": "electron/lib/scrcpy-spawn-native.js",
+    "bytes": 6768,
+    "sha256": "eec9bfb6203523116fe2f067fe8928229914a6f2ec1b4aeeeab1ab5a3ae3f3af"
+  },
+  {
+    "file": "electron/lib/scrcpy-spawn.js",
+    "bytes": 12512,
+    "sha256": "57de508e5c79225c451d34b31811ad39bd6315b08c34b14a0793e52e30045adc"
+  },
+  {
+    "file": "electron/lib/scrcpy-startup-cleanup.js",
+    "bytes": 8499,
+    "sha256": "82688cad741ba83dd8f61123f263beeb540971913509309c15e19d415249f81f"
+  },
+  {
+    "file": "electron/lib/scrcpy-tray.js",
+    "bytes": 37671,
+    "sha256": "0398a2549026731051b2e550f387cf3b30205e44229ddd0be26733a5b12a3411"
+  },
+  {
+    "file": "electron/lib/session-token-minter.js",
+    "bytes": 5104,
+    "sha256": "4d3facc088e3124232d2f64a867748393613eb4eabafa79bc8e4db80f8f39d97"
+  },
+  {
+    "file": "electron/lib/sms-provider.js",
+    "bytes": 3966,
+    "sha256": "a74b75399afa36fcee9f2e4d203c9a26ead973dd1d69490d3877c188ea34ce83"
+  },
+  {
+    "file": "electron/lib/smspool-balance.js",
+    "bytes": 4315,
+    "sha256": "d291e5f7d796c6fbf557206629ced696150844388783b8fe5f0efa93e779cb50"
+  },
+  {
+    "file": "electron/lib/switch-curtain.js",
+    "bytes": 12437,
+    "sha256": "15449aae58e0e9f2c5b25f303ab5c939d6b4a840f37361cfd44886f1252d3220"
+  },
+  {
+    "file": "electron/lib/tailscale-status.js",
+    "bytes": 15481,
+    "sha256": "dcde0dc28f9d78135c0b6e8556387319e483929475ec65779e1f5c4edf9e74a1"
+  },
+  {
+    "file": "electron/lib/tiktok-trend-finder-v2.js",
+    "bytes": 24315,
+    "sha256": "bd44a4ec1d44e333b7fbc428bf82356d036aff3d1ff55db57a3825d9a6112354"
+  },
+  {
+    "file": "electron/lib/usb-vps-bridge.js",
+    "bytes": 28788,
+    "sha256": "1bf101a56d0b7e38ef4175df4a72971cc4ef44639b73b378cec89d91e3e2f54d"
+  },
+  {
+    "file": "electron/lib/vanadium-upload.js",
+    "bytes": 6296,
+    "sha256": "44b9204dc0028eea8f2bec71bc420b5ce0842d90393542815827f997709f7af6"
+  },
+  {
+    "file": "electron/lib/win32-dock.js",
+    "bytes": 16924,
+    "sha256": "fb6b9c847f81c0ad881a339955ebaf6019c68bdbd28a66df1a4f1c7a1191a589"
+  },
+  {
+    "file": "electron/lib/wireless-adb-reconciler.js",
+    "bytes": 26038,
+    "sha256": "dcd37d93a22f89efcc5b11f92d49216859d0b6ae239ba1ae617915415bb18bd0"
+  },
+  {
+    "file": "electron/lib/wireless-pair.js",
+    "bytes": 8612,
+    "sha256": "e21273cedc52daee299b4204cf5f6e35255bf384d45925270391c1e7969eea40"
+  },
+  {
+    "file": "electron/lib/ws-module-client.js",
+    "bytes": 298689,
+    "sha256": "5aeb92f6b493b53359976304e6eb552ea0d0216e2455b00549d7a6e5ce3600c2"
+  },
+  {
+    "file": "electron/LICENSE.txt",
+    "bytes": 5594,
+    "sha256": "9fd130b1e0b78143bc09906650bca3e182da98907f200050416eda1831a92fe4"
+  },
+  {
+    "file": "electron/main.js",
+    "bytes": 264630,
+    "sha256": "f49813d5e2be4227208635b41a0323f400a3e9f61d14392509a0e7b81899b263"
+  },
+  {
+    "file": "electron/mirror-toolbar-preload.js",
+    "bytes": 13394,
+    "sha256": "cd65bfaec4e1f1a9b6c7998d00de1a0860de5338538c2a3e2845567367d12e91"
+  },
+  {
+    "file": "electron/mirror-toolbar.html",
+    "bytes": 243542,
+    "sha256": "b86592979af42441ce002524be24ee369c3eeebddd5e58c26d82350e5ec95261"
+  },
+  {
+    "file": "electron/models-dashboard.html",
+    "bytes": 310907,
+    "sha256": "91bc7a8194ab3dffedb1dc0b1bd742ad362d92ce904f13852656ac0f4bccb85f"
+  },
+  {
+    "file": "electron/package-lock.json",
+    "bytes": 302530,
+    "sha256": "261ec1df7715879fcdae5ccca52d60f698e44238609e2c128292aa736d3e0d69"
+  },
+  {
+    "file": "electron/package.json",
+    "bytes": 5775,
+    "sha256": "ee60e732ffc3444893545e9c4525fb45938eaada54c65502772e51cf7ad291cd"
+  },
+  {
+    "file": "electron/preload.js",
+    "bytes": 38112,
+    "sha256": "08b9b58f300eb2f46a66abf01436df73ccade84bc13196e29a386b0482724900"
+  },
+  {
+    "file": "electron/python-bundle/.keep",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "electron/python/.gitignore",
+    "bytes": 266,
+    "sha256": "995555e13911d3d74c8f14e3036360c5b216891c7874144bd632a115a2c244c4"
+  },
+  {
+    "file": "electron/python/.railwayignore",
+    "bytes": 26,
+    "sha256": "9eb97c8136052b40596cd30b3ba3b7f672e69f5e0c1685470d4b3db91c20d631"
+  },
+  {
+    "file": "electron/python/defaults/comments.txt",
+    "bytes": 612,
+    "sha256": "b5a0dacc9b992d8dc113924ad51724153252ebece98b7642d64332d47d639d20"
+  },
+  {
+    "file": "electron/python/defaults/post_captions.txt",
+    "bytes": 2175,
+    "sha256": "7c570b330dc76cb59f38bbbfe2d98cb0c70108ad6e22a384fdda62df27a85ede"
+  },
+  {
+    "file": "electron/python/defaults/story_captions.txt",
+    "bytes": 1221,
+    "sha256": "85b56bf84031417c3be88798e6996a1f1f6abc09b9218937cf1fffed8f364a7c"
+  },
+  {
+    "file": "electron/python/defaults/usernames.txt",
+    "bytes": 312,
+    "sha256": "2b47247e23640134ca09dd7267019bfb8cc33cb9536ebd0c583da752c4e576fa"
+  },
+  {
+    "file": "electron/python/instagram_trend_finder.py",
+    "bytes": 14858,
+    "sha256": "d6c9f79fbcd570bba2ccdaf1abbc24ac04d0bd76c7617556dba9cd2da59365c3"
+  },
+  {
+    "file": "electron/python/lib/__init__.py",
+    "bytes": 153,
+    "sha256": "7c831721d51b763289def2db1ec10ec1c07ff058261ba801ef30195b7bfaf4fe"
+  },
+  {
+    "file": "electron/python/lib/bootstrap_profile_guards.py",
+    "bytes": 10772,
+    "sha256": "28f64a8e0072f381135a495e401327edc68926042049671cbfc7627e9cde546e"
+  },
+  {
+    "file": "electron/python/lib/google_drive_uploader.py",
+    "bytes": 8894,
+    "sha256": "7cd7a277f6a31e7e45b7301311e8b653fbea33fe67a6ecc0b6b34e41148b4f2d"
+  },
+  {
+    "file": "electron/python/lib/ig_ui_map.md",
+    "bytes": 17952,
+    "sha256": "8f54521a05d753a7bd2d9e3bbab75b750dc18126a6fb1b8216c9a205f1fe6d65"
+  },
+  {
+    "file": "electron/python/lib/instagram_navigation_guards.py",
+    "bytes": 1560,
+    "sha256": "05bc0ec7f8a4a5c795a3dc88919a6c101220e4e47b271efa4da64cbbd17b5bde"
+  },
+  {
+    "file": "electron/python/lib/instagram_screen_classifier.py",
+    "bytes": 19417,
+    "sha256": "d9936c9fed86b8d4cfc5bee5cc9746a6689830fd1dd08590d8e4e3498ff0bf4c"
+  },
+  {
+    "file": "electron/python/lib/persistent_log.py",
+    "bytes": 9435,
+    "sha256": "9e9aa8428f51bde4f91b461a25700713db09d0ea8ab683b6e1e2f7669a575f5b"
+  },
+  {
+    "file": "electron/python/lib/posting_progression_guards.py",
+    "bytes": 47324,
+    "sha256": "734a9518aedef5c14059f0728fce449b63c68ea0f111279d44bc0bb37f0368f0"
+  },
+  {
+    "file": "electron/python/lib/remote_device.py",
+    "bytes": 64552,
+    "sha256": "b0dc24a2f3f82cb53dde0e0bd60250610cb3f126938f2acf1c5487f5b0680e00"
+  },
+  {
+    "file": "electron/python/lib/runtime_telemetry.py",
+    "bytes": 3345,
+    "sha256": "f806acb002183734f2a372a773030715830ab1df71707bd70ebc40b7c3591c29"
+  },
+  {
+    "file": "electron/python/lib/screen_state.py",
+    "bytes": 8093,
+    "sha256": "84f0e757ef25283edfe15de564bef874aa53a63d929bc55577db6d7f4ec20f3f"
+  },
+  {
+    "file": "electron/python/lib/supabase_client.py",
+    "bytes": 9880,
+    "sha256": "4fe51b953b152da61d5730c216027fb200c16a6b6583b358c4df2bf4b7834ce6"
+  },
+  {
+    "file": "electron/python/lib/ws_module_adapter.py",
+    "bytes": 36664,
+    "sha256": "50324cce23f37ffa8807a8f4d922db2011766c373de7715b8fc8e7901ef72bda"
+  },
+  {
+    "file": "electron/python/lib/ws_modules_shared.py",
+    "bytes": 85435,
+    "sha256": "e06c8dfdca9a7a2497bffff6a8ae0c35f3656319726ada679397e1a2d6f3433d"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/__init__.py",
+    "bytes": 661,
+    "sha256": "864e4cb387db28f676099a4a506ef85d4c6edc7cafeed6c01409e12094c976ae"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/account_creation.py",
+    "bytes": 80488,
+    "sha256": "3f010711388529f80a7003d6323e6ee62a0d8492e02f0a85388d79da6e618f07"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/airplane_toggle.py",
+    "bytes": 1067,
+    "sha256": "029794c995dea87395272e10f643d846646d0336893568a0a5798ceaaf7f68e8"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/detect_accounts.py",
+    "bytes": 1905,
+    "sha256": "1dabb99a1250063d2f1b47c007528ade5ce0ece329cc212d9baf0fcf3f7db0e2"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/dismiss_popups.py",
+    "bytes": 1261,
+    "sha256": "0d33eca60293627c8314f24c8f2fe04c4909feb40f56536406dae87893690b10"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/edit_profile.py",
+    "bytes": 44632,
+    "sha256": "986d72290cbf8cecdb0487f5198d00cc109a00d76428f7395c30f4cd0a3b2f52"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/engagement.py",
+    "bytes": 61550,
+    "sha256": "7bb4012e8553d1233cb1095ca72826bca96c07c76badce849bd127432c258936"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/follow.py",
+    "bytes": 12367,
+    "sha256": "c2c3bb7d5193716f416e73258649efad7f8d13d1c4f099506971eb7b74e793bf"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/gallery_clean.py",
+    "bytes": 5977,
+    "sha256": "0953fcdee316d2cff8c96ea229e09b20de7767d0302eab65f0c768b1417fbce2"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/ig_launcher.py",
+    "bytes": 1582,
+    "sha256": "8788c4f7b987dbb5146ff60bff84c7d65f9ea585210ad6bb9723d18f54c14cd9"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/ig_login.py",
+    "bytes": 5293,
+    "sha256": "18ed644d6283a19be44a23cba714582a11e90b16f6ffad43e817b7ed17dcf1d8"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/post_feed.py",
+    "bytes": 69270,
+    "sha256": "6d9454cef13f33a63b034c6f04b34ceebf9c9f21826ee8f74a9edb5d9c7caecf"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/post_story.py",
+    "bytes": 73764,
+    "sha256": "e8c81241e5322c2eef8d684c9e7e8068d1f6a5a89b527f08c00b128e200769fc"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/post_trial_reel.py",
+    "bytes": 67957,
+    "sha256": "7a272729a23b0848d85beef35e750800c364269d101cdbeb7a8a7db60cce34c2"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/profile_switch.py",
+    "bytes": 1228,
+    "sha256": "edaab10a6c8f4c632e771327127b62a9a77f4352355045d7c0482bb3afc632ed"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/repost.py",
+    "bytes": 37843,
+    "sha256": "0dc21349872677a7282cf93d41dd497b9160721b51dff6368b70046c27b7d16f"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/stats_scraper.py",
+    "bytes": 2298,
+    "sha256": "2426293d769b2f055e34ded1b9fc38cfeb30cbe748deaf7615edc26e95515f3f"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/switch_ig_account.py",
+    "bytes": 1822,
+    "sha256": "ac3b4f54d7ab743b9f89a543294ab5c7af53971ff62fc8a4fc4fe3813c78e2a4"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/threads_engagement.py",
+    "bytes": 1188,
+    "sha256": "187ac63a273a8dd8183eda371bde836680664cb5b6115ba105b826ddf0569220"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/threads_launcher.py",
+    "bytes": 692,
+    "sha256": "a0e523620cb3c8d1222dea6d1a152a0d261c1287f9879d7c4d31cbb612f34c39"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/threads_post.py",
+    "bytes": 1145,
+    "sha256": "ff41c92272da3a3a9073bd0f1985d58852f0b29c822774787cff68592104cb3c"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/tiktok_engagement.py",
+    "bytes": 1341,
+    "sha256": "a444b3986cc53ff41c63b3a4fe8a0e93a40a08169c88d61251dadf7150124c7f"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/tiktok_launcher.py",
+    "bytes": 760,
+    "sha256": "15f0088023385010cd736e302eabda15486e324beac8da4f8eaefa4bbf36e754"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/tiktok_post.py",
+    "bytes": 1910,
+    "sha256": "8a73537f2fbb9a4882c46fd412a4d1b17c7f0016d2bb5188c273092b7b639094"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/twitter_engagement.py",
+    "bytes": 1934,
+    "sha256": "d3ce0ab89c3882d30abccd2464f117e0a612926dcde68f82f7eedc099a58afca"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/twitter_follow.py",
+    "bytes": 1552,
+    "sha256": "9b4d35c61e85a6d9c5814fc9f5b9c63e5bacc4f19a25febbab456da15a8c046c"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/twitter_launcher.py",
+    "bytes": 693,
+    "sha256": "5e50d234eb3650fb237e0f8d4b57fb4d74512ca7c28fd908a7a812f7b66e8e17"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/twitter_post.py",
+    "bytes": 1157,
+    "sha256": "a70b58661819da8e9c4086417b77b677bad94018469cdb4ee2f82ef6e30b918b"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/view_stories.py",
+    "bytes": 37452,
+    "sha256": "4ea6d4e4e21936246f23fbe0002292c920e7977c4b2246e455eef0dce130680c"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/vpn_connect.py",
+    "bytes": 1769,
+    "sha256": "3f5fddc76038a923d955b06f7323a90414b6d43ff71fe3ae6e73fd0df5db8ca5"
+  },
+  {
+    "file": "electron/python/lib/ws_modules/vpn_disconnect.py",
+    "bytes": 750,
+    "sha256": "69ca8cb75a5582f818b40f6e115bc96cae68b30a6eee0a08ee3ac48099b8c918"
+  },
+  {
+    "file": "electron/python/live_launcher_home_validation.py",
+    "bytes": 2142,
+    "sha256": "51407cd730c3b465e204716cef02a477241220864b571706ab42b67cadc47144"
+  },
+  {
+    "file": "electron/python/modules/__init__.py",
+    "bytes": 72,
+    "sha256": "9bb04e59b2552152dd7d596c74f15831908e455447a7dc5eaadb34838bab8513"
+  },
+  {
+    "file": "electron/python/modules/account_creation_module.py",
+    "bytes": 93594,
+    "sha256": "176003d2adec5d4af78921e76c26ca4daca4777f8aff83123389ff045eaf845b"
+  },
+  {
+    "file": "electron/python/modules/account_validator.py",
+    "bytes": 27301,
+    "sha256": "09f2be2a0c17e31de630ec48984b2a424e8154f0ebb389d145b1bd3d7c00820d"
+  },
+  {
+    "file": "electron/python/modules/airplane_mode_module.py",
+    "bytes": 16710,
+    "sha256": "a86c01fa61189cc93a69de1a912eced8dbc2b2825dc12d38896f7a4a56dbf282"
+  },
+  {
+    "file": "electron/python/modules/airtable_sync.py",
+    "bytes": 27319,
+    "sha256": "3f9fc07d52783f48870fd0e86ac3f1df7f7432d651af198afcc0138312e3b436"
+  },
+  {
+    "file": "electron/python/modules/appium_crash_recovery.py",
+    "bytes": 6650,
+    "sha256": "64c5bac5c85d50c067d1e3feb15401e9f47c84a873f9c47fe7efba8969ed8a70"
+  },
+  {
+    "file": "electron/python/modules/content_manager.py",
+    "bytes": 30972,
+    "sha256": "025a66af692b380752028f850da82af1d732a6cb5e238d4335157262e2741e67"
+  },
+  {
+    "file": "electron/python/modules/create_profile_content.py",
+    "bytes": 9478,
+    "sha256": "3d7d4f5f892ffe3d72f980a9988ba6d76665989ffc8b2d1b4f20f1003502c666"
+  },
+  {
+    "file": "electron/python/modules/defaults/reels_captions.txt",
+    "bytes": 5756,
+    "sha256": "130583515d23daafdc94cd50e181b0f5144e95c1ebd153ed4adacab33ee8220d"
+  },
+  {
+    "file": "electron/python/modules/defaults/threads_captions.txt",
+    "bytes": 1524,
+    "sha256": "1dd8d5454d666e1181eaacf83069d76971a40959edb4e63855ad15233a5d894f"
+  },
+  {
+    "file": "electron/python/modules/defaults/tiktok_captions.txt",
+    "bytes": 1375,
+    "sha256": "099f2a3196f0ce9ba2d7327c2dffcb31ca7b7900bcf732d0f9e13cfb74547570"
+  },
+  {
+    "file": "electron/python/modules/defaults/tiktok_comments.txt",
+    "bytes": 558,
+    "sha256": "1445a3b0bcd944163b4698675c29a59127e62f4bea568231c3a398f722b21561"
+  },
+  {
+    "file": "electron/python/modules/defaults/twitter_captions.txt",
+    "bytes": 1872,
+    "sha256": "e6ebb945a9c5d3568d2c44172bb41123b0f161f5f4095e2e35c3602e8bbcc466"
+  },
+  {
+    "file": "electron/python/modules/defaults/universal_captions.txt",
+    "bytes": 7817,
+    "sha256": "b1ee64b660c23d4fc90539f8326f45a3fe157b898475a25b8df1418c3e519bfc"
+  },
+  {
+    "file": "electron/python/modules/discord_notifier.py",
+    "bytes": 35342,
+    "sha256": "974ddb4239a5cbf574f6d996d69d5dcac6b18aad4e7347045d7e2285fa775c26"
+  },
+  {
+    "file": "electron/python/modules/drive_module_improved.py",
+    "bytes": 62181,
+    "sha256": "ab131867cec1e6edfe1578224d7b6cd67d625dea27edc0a03b9d69f9bc2fb4a8"
+  },
+  {
+    "file": "electron/python/modules/driver_manager.py",
+    "bytes": 11476,
+    "sha256": "60b363a26c504baef008e64ee99f59674fd092e8c4571ec1f217765bfa350bb0"
+  },
+  {
+    "file": "electron/python/modules/edit_profile_module.py",
+    "bytes": 24165,
+    "sha256": "fe678ffa4f62954ba36f3cdcb40a55d26f3b468f3156014f07cceea04cf6f5a1"
+  },
+  {
+    "file": "electron/python/modules/engagement_module.py",
+    "bytes": 71006,
+    "sha256": "5506d5a59811ac023434ce2d9b1b54b85c7de52c9471670dbc5243051b72ab20"
+  },
+  {
+    "file": "electron/python/modules/follow_module.py",
+    "bytes": 44764,
+    "sha256": "8eca451e66a452a5d31ea7439b7f972159f63156ee037f446b51e0427a538959"
+  },
+  {
+    "file": "electron/python/modules/gallery_cleaning_module.py",
+    "bytes": 48206,
+    "sha256": "8c50193c1826603780f08839e4bbb989a1b36e7d3eae5f389fd9db76e65c42b5"
+  },
+  {
+    "file": "electron/python/modules/human_behavior.py",
+    "bytes": 16207,
+    "sha256": "15a87c904b33bbd34dc38b0a28200f02deae552856773620dc60963073066bf0"
+  },
+  {
+    "file": "electron/python/modules/ig_account_switcher.py",
+    "bytes": 15954,
+    "sha256": "c41e20df0c841ebb71c6edf15f81daa3075ff8ab85e1fb16bdfc8caf698f01a0"
+  },
+  {
+    "file": "electron/python/modules/ig_selectors.py",
+    "bytes": 60974,
+    "sha256": "b79b0786d4992c0953e6199e00d8a0d0e36262521d465ba86e5685c2ea01f8a1"
+  },
+  {
+    "file": "electron/python/modules/instagram_launcher_module.py",
+    "bytes": 57857,
+    "sha256": "a258b0f80ba291dbcc6e6ccc9ada1d26640a0259a6276a494f13eb41634ad6fe"
+  },
+  {
+    "file": "electron/python/modules/main_controller.py",
+    "bytes": 7848,
+    "sha256": "84c2d1629f2f6f46355490d17beacf88da7b7acd7ebbd2fc9669d0dcbd2ad56e"
+  },
+  {
+    "file": "electron/python/modules/misc_popup_handler.py",
+    "bytes": 24909,
+    "sha256": "9f8f0aa95d69b3fc2decfce5e43294ffddc821ec7d91339d0714a47f1267b293"
+  },
+  {
+    "file": "electron/python/modules/new_user.py",
+    "bytes": 4932,
+    "sha256": "d450e7b635e2077ad4f2cb2a49b0ee7394942cbf3e606aeff8aacaaff52e1dea"
+  },
+  {
+    "file": "electron/python/modules/popup_handler.py",
+    "bytes": 11641,
+    "sha256": "73c656ff41897e888e4b56102c74990d9ad220c0fe3ce90e1c9db898434f71c9"
+  },
+  {
+    "file": "electron/python/modules/post_module.py",
+    "bytes": 138508,
+    "sha256": "096496338304630b5f1c8b7a6d52489b272ed90fedff76dd314553eeeedd9eea"
+  },
+  {
+    "file": "electron/python/modules/post_story_module.py",
+    "bytes": 127075,
+    "sha256": "0ff499781591f57cd8f4b0cda04b3b1b7e1e138932e172a3a7b2715aad6ae0ca"
+  },
+  {
+    "file": "electron/python/modules/profile_switching_module.py",
+    "bytes": 57398,
+    "sha256": "4d4ed1f79f707f1961fba49857b8180d84d300c2cb979acb75c311f1cddeac64"
+  },
+  {
+    "file": "electron/python/modules/protonvpn_module.py",
+    "bytes": 11881,
+    "sha256": "900dbd9faaf57f83cbe1172740295922fffa08e03373ac0997610f9f79200c14"
+  },
+  {
+    "file": "electron/python/modules/repost_module.py",
+    "bytes": 21310,
+    "sha256": "343a1c947259f375eca875e27c375aff45db291a8b7ceca2e2ac0d5e7319ccae"
+  },
+  {
+    "file": "electron/python/modules/stats_scraper.py",
+    "bytes": 6537,
+    "sha256": "7278df0e31cbe0891ed2c2a2aa634c0a9ede3465aa215eb72c75c36c9bef92b3"
+  },
+  {
+    "file": "electron/python/modules/story_module.py",
+    "bytes": 53840,
+    "sha256": "1c64f41af13bcf9283de7bdad497dd72a93186a885947143d25193f59597bef2"
+  },
+  {
+    "file": "electron/python/modules/threads_modules/__init__.py",
+    "bytes": 171,
+    "sha256": "9a036bb5ef507f7acee2502b7b07916fa04a3c655eba19fe1d07e81eb27ed9a3"
+  },
+  {
+    "file": "electron/python/modules/threads_modules/threads_engagement.py",
+    "bytes": 22979,
+    "sha256": "7c91b01990ff21cdd5d7b5552c1949820834843661ab15d9b38436e149c539d0"
+  },
+  {
+    "file": "electron/python/modules/threads_modules/threads_posting.py",
+    "bytes": 8715,
+    "sha256": "67365b62b1ec7c29d4338adcbf2728afa49bb645c81c074c80a226988a0dffcc"
+  },
+  {
+    "file": "electron/python/modules/tiktok_modules/__init__.py",
+    "bytes": 447,
+    "sha256": "9bed1e83bca9393927d09925455d6dd967690bfd61e3d69adb748e9ed0a3f14d"
+  },
+  {
+    "file": "electron/python/modules/tiktok_modules/tiktok_engagement.py",
+    "bytes": 13562,
+    "sha256": "12c8cc3ced5bc4fe554ef1e647bb2431a3072cfd053522f31cf92c7d01a2dd5e"
+  },
+  {
+    "file": "electron/python/modules/tiktok_modules/tiktok_launcher.py",
+    "bytes": 4357,
+    "sha256": "fe2c72442a9cc46ab82edcb70668173ac5e1fbfee2c9af085a837339f715ef1b"
+  },
+  {
+    "file": "electron/python/modules/tiktok_modules/tiktok_manager.py",
+    "bytes": 9136,
+    "sha256": "4345686f564692dc31d2b2b95b7eb1a92ac4e7fbf1b57853575c2df1688f7922"
+  },
+  {
+    "file": "electron/python/modules/tiktok_modules/tiktok_posting.py",
+    "bytes": 12861,
+    "sha256": "be7a7e068261e30f34e8bc9502f310e9ba2022c8d36e69cadf7bfc1dddbc859d"
+  },
+  {
+    "file": "electron/python/modules/twitter_modules/__init__.py",
+    "bytes": 253,
+    "sha256": "05e18aaa715244b03f59724cb2bb77ccc6695599c1aa9a4ee83ba1a90b4c9239"
+  },
+  {
+    "file": "electron/python/modules/twitter_modules/google_drive_download.py",
+    "bytes": 37113,
+    "sha256": "c7d621fba329a40b6b32381463c1a535f8a1e6280a0d0b02d7cd78c2137726c4"
+  },
+  {
+    "file": "electron/python/modules/twitter_modules/twitter_engagement.py",
+    "bytes": 53093,
+    "sha256": "ad44a333660a729b293b2ff59d70bb201817f495919125420228ff39b56c4e04"
+  },
+  {
+    "file": "electron/python/modules/twitter_modules/twitter_follow.py",
+    "bytes": 37555,
+    "sha256": "91abbd7ebf3e785ff174f1f71a3a96e8f950ae785c6ade098e14c0765d6df9c2"
+  },
+  {
+    "file": "electron/python/modules/twitter_modules/twitter_launcher.py",
+    "bytes": 20472,
+    "sha256": "3db896940f854e14d400c0986f11a19912e1266deeb3acf79cb76c9159a8d450"
+  },
+  {
+    "file": "electron/python/modules/twitter_modules/twitter_manager.py",
+    "bytes": 12724,
+    "sha256": "37d9215d88aa4b6652852aebbbc067343c10620a5ddd259cd9ba222414c3c4f1"
+  },
+  {
+    "file": "electron/python/modules/twitter_modules/twitter_posting.py",
+    "bytes": 12872,
+    "sha256": "585db1802b9f1d426cd688c1f11f6dde8f531f0d3a5340a9a8c2e93ab3f86329"
+  },
+  {
+    "file": "electron/python/modules/twitter_modules/twitter_retweet.py",
+    "bytes": 47298,
+    "sha256": "fdbdf66cce46e40d6d6d9a42118c32355ee3bf9a3787b195bbdb8302bbff6f88"
+  },
+  {
+    "file": "electron/python/modules/twitter_modules/twitter_web_engagement.py",
+    "bytes": 25178,
+    "sha256": "9a99e6ead23492c2c9de4d63d64413ce1557366caf17efc875c8f428a19f515d"
+  },
+  {
+    "file": "electron/python/modules/twitter_modules/twitter_web_posting.py",
+    "bytes": 14297,
+    "sha256": "19bc4807977cd48c84565b8ad5ed8399d42fb1f964ca5c6d55c781e7274e6f58"
+  },
+  {
+    "file": "electron/python/modules/vpn_module.py",
+    "bytes": 27853,
+    "sha256": "ed437753dffd0db5f355cc5d0247606f7fe1a10a14517b0e5cbcbd194d406a05"
+  },
+  {
+    "file": "electron/python/nixpacks.toml",
+    "bytes": 1368,
+    "sha256": "f7e8b8a95979fc89885d56f49125769abc2a8da53a471f588a9ee460b0c40d94"
+  },
+  {
+    "file": "electron/python/notifications.py",
+    "bytes": 11350,
+    "sha256": "5f04ef6d10bea679b92f4fd066e68837a09280e1a7cc418f125def6831f680e0"
+  },
+  {
+    "file": "electron/python/Procfile",
+    "bytes": 53,
+    "sha256": "4b120f9ed1cc56df6face9fecf69ebcc79b8d9b09f0abcd70b0fd133dcc94e7c"
+  },
+  {
+    "file": "electron/python/railway.json",
+    "bytes": 299,
+    "sha256": "334e1b6bfa842eb88993d0463f058c83e7962b404bbe8308f0d3804aa23102dc"
+  },
+  {
+    "file": "electron/python/railway.toml",
+    "bytes": 197,
+    "sha256": "55dcbd0ed4275f16193e7cf0cb193d6f9f9fa504d7a682421d894692da0ef91f"
+  },
+  {
+    "file": "electron/python/README.md",
+    "bytes": 2913,
+    "sha256": "cd3f99c33aa765eac18ef599ab49cb25896d394fd45ae317e22550d66e357f55"
+  },
+  {
+    "file": "electron/python/reelsmax_runner.py",
+    "bytes": 9360,
+    "sha256": "60176dbabbc365f7daa58aadafdd4396e95979511ba08a2caf62c455ec567edd"
+  },
+  {
+    "file": "electron/python/requirements.txt",
+    "bytes": 1074,
+    "sha256": "4717a0e8533f49b1217073c29528b828ef6d6643a8877a80bb1a3ab229f62df1"
+  },
+  {
+    "file": "electron/python/runner.py",
+    "bytes": 32667,
+    "sha256": "bea80d9bd5fb21c0a2afc8075eb0ff8248af5034101a32dcfa8f0a4b17c9b158"
+  },
+  {
+    "file": "electron/python/runtime.txt",
+    "bytes": 15,
+    "sha256": "20a48e68f34f8392785c02d714c8f284c3a57e33836d396b6fe64ef64d59355b"
+  },
+  {
+    "file": "electron/python/scripts/full_signup_walk.py",
+    "bytes": 38957,
+    "sha256": "26ec689d6bc22a6b7672e57b4e9369d0814b1871a1d656a8e0d6c9f574295b33"
+  },
+  {
+    "file": "electron/python/scripts/manual_ig_walk.py",
+    "bytes": 4615,
+    "sha256": "cfb7eb4fdc12fdcec78f15ee96c07fdbd43924effe4398eeb1c7cd7c5c2e1a08"
+  },
+  {
+    "file": "electron/python/server.py",
+    "bytes": 823938,
+    "sha256": "857f6f12ecb96a67ba7c9252299a46c977629464fbb07d3865d894705c0608e4"
+  },
+  {
+    "file": "electron/python/server.spec",
+    "bytes": 10694,
+    "sha256": "2a33f5586e4657f28b95c921c9bf9bc05882f5a98eddc8b691400698af2c5117"
+  },
+  {
+    "file": "electron/python/textverified_sms.py",
+    "bytes": 7345,
+    "sha256": "a679e6a023801c87dcdb67fca0c933269955b53fbea4ee44cac1810302c94637"
+  },
+  {
+    "file": "electron/renderer/models-dashboard-app/assets/index-Bs9BR5g4.js",
+    "bytes": 343427,
+    "sha256": "37c4dfd900c89eb10eb85f67bfd142b9a6990dbd50dea820c54aa5f7656ed8b5"
+  },
+  {
+    "file": "electron/renderer/models-dashboard-app/assets/index-CI16aUHS.css",
+    "bytes": 106543,
+    "sha256": "b83c751335af6d2ae99215b451291c5ff46b79fecf61f186f1c35454a842a880"
+  },
+  {
+    "file": "electron/renderer/models-dashboard-app/index.html",
+    "bytes": 420,
+    "sha256": "eaa69ac9fb52cc0a6b73b7ebe8a1b0027ebc4901c755c3350739934e3f08696a"
+  },
+  {
+    "file": "electron/renderer/schedule-overview-edit.js",
+    "bytes": 6915,
+    "sha256": "e87f91880ebaa528336fcd1f09fa5dbd6345c1eed1480dbb7bb0bcb04f570c56"
+  },
+  {
+    "file": "electron/renderer/schedule-overview-model.js",
+    "bytes": 10101,
+    "sha256": "ab301799c4f9ab62e52311f8ccd992a37823f08defa157bbef9ca13ba0d6596f"
+  },
+  {
+    "file": "electron/renderer/schedule-overview.js",
+    "bytes": 12459,
+    "sha256": "d5ab0eb7a56f780f2b4f82562ed0318671dd106dda0764b6f097b8e8d7bde84b"
+  },
+  {
+    "file": "electron/scripts/check-brain-fresh.js",
+    "bytes": 6083,
+    "sha256": "7fc984622c898cb58088eefd104f98c90e80e6e7a3e7a7f750d7e95d4d012003"
+  },
+  {
+    "file": "electron/shared.css",
+    "bytes": 42080,
+    "sha256": "0f4ae367f59a3a54b538884bf54a59f9ea36d60fc9c0a193b24c4381b37a58c6"
+  },
+  {
+    "file": "electron/vendor/cloudflared/darwin-arm64/cloudflared",
+    "bytes": 38206304,
+    "sha256": "2c1664a06fb7bc4d3af24e208ee34a1b5ed4610006dab98aa3e65cccf2c6b444"
+  },
+  {
+    "file": "electron/vendor/cloudflared/darwin-x64/cloudflared",
+    "bytes": 40995312,
+    "sha256": "2b9ad49aee5d390ba9b9bf949a0576cc1e5f1e7444a59f4db0f0ceff05560542"
+  },
+  {
+    "file": "electron/vendor/cloudflared/README.md",
+    "bytes": 1315,
+    "sha256": "9298718f9c34e42f0a9fffbdd5f5afa915e2401bf60938d8a1bacef478fa7838"
+  },
+  {
+    "file": "electron/vendor/cloudflared/win32-x64/PLACEHOLDER.txt",
+    "bytes": 416,
+    "sha256": "07c267d52b9fb3032f61f090325aae7520df65fe14d39aa126778be3862ff00c"
+  },
+  {
+    "file": "electron/vendor/companion/shadowphone-companion.apk",
+    "bytes": 4442172,
+    "sha256": "f97c2dba93a5d3b67bd8ee01ea66566d605e27db6987604f787504a168ea63d2"
+  },
+  {
+    "file": "electron/vendor/helpers/ADBKeyboard.apk",
+    "bytes": 18753,
+    "sha256": "41a8a0996d7397a2390d1ca16a75cb66c4a7bdaa89cf4e63600a4d3fb346fbbb"
+  },
+  {
+    "file": "electron/vendor/ws-scrcpy/dist/public/0adc36cf9cddfe4b6056c3ca47abaca0.png",
+    "bytes": 4093,
+    "sha256": "707a95b3283ff12c0e70c4ab953985e92bf752425c9345a8ffea167c5f8239ec"
+  },
+  {
+    "file": "electron/vendor/ws-scrcpy/dist/public/1279f368b5bb729ca7b35990042f9928.png",
+    "bytes": 2415,
+    "sha256": "ddb1aa448fc8119a52f0c181e00ed830ace0f2709a05357949dbabd813b9c61e"
+  },
+  {
+    "file": "electron/vendor/ws-scrcpy/dist/public/avc.wasm",
+    "bytes": 132979,
+    "sha256": "f05e959033da0e40f3b91943b3cf5a5119316728bfdc9dab90e712a2aded6420"
+  },
+  {
+    "file": "electron/vendor/ws-scrcpy/dist/public/bundle.js",
+    "bytes": 3313652,
+    "sha256": "96189f21a72aeb7763bbbda029d95f8a59ccd071c324862a5ffaf2c0c686aa7e"
+  },
+  {
+    "file": "electron/vendor/ws-scrcpy/dist/public/bundle.worker.js",
+    "bytes": 458075,
+    "sha256": "ccc23189e88c174d453acc4e84a575bd0345e3ad2f0c2ec6108d4f10e00a5c81"
+  },
+  {
+    "file": "electron/vendor/ws-scrcpy/dist/public/index.html",
+    "bytes": 87171,
+    "sha256": "968483695e013d5c4639761d3a9648f8b2809bf92e4a86bd49ceb6e373d3c873"
+  },
+  {
+    "file": "electron/vendor/ws-scrcpy/dist/public/main.css",
+    "bytes": 71632,
+    "sha256": "3cb09e9e8928c4bde7b675a29592826f9f94c37fcd9e723266bfc568f6893bb1"
+  },
+  {
+    "file": "electron/vendor/ws-scrcpy/dist/vendor/Genymobile/scrcpy/LICENSE",
+    "bytes": 11591,
+    "sha256": "04cc44eb2659f8093c33a13822633f40af2674a7ef2f3c8bc50bca7c1fe767e8"
+  },
+  {
+    "file": "electron/vendor/ws-scrcpy/dist/vendor/Genymobile/scrcpy/server/scrcpy-server",
+    "bytes": 271048,
+    "sha256": "6af9dc4693633926826ea6578668f71ec76c2cf6ad1a07726ae0d50d5b7aa957"
+  }
+]

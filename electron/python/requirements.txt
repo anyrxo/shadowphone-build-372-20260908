@@ -1,0 +1,37 @@
+# ShadowPhone Module Server - Railway Deployment
+
+# Core API framework
+fastapi>=0.109.0
+uvicorn>=0.26.0
+pydantic>=2.5.0
+
+# HTTP client for external APIs
+httpx>=0.26.0
+requests>=2.31.0
+# NOTE: aiohttp REMOVED — was never imported anywhere, dead weight (~15-20MB RAM)
+
+# Supabase for usage tracking
+supabase>=2.0.0
+
+# JWT verification for Clerk auth
+PyJWT>=2.8.0
+cryptography>=41.0.0
+
+# Rate limiting
+slowapi>=0.1.9
+
+# Utilities
+python-dotenv>=1.0.0
+python-multipart>=0.0.6
+
+# WebSocket support for real-time module execution
+websockets>=12.0
+
+# NOTE: yt-dlp REMOVED from pip — only used via subprocess, nix binary handles it
+# Saves ~100-150MB RAM. Use `yt-dlp` CLI (nix) instead of `python -m yt_dlp`
+
+# Image processing for the Spoofer templater engine (render_caption_png).
+# PIL draws emoji-aware caption PNGs (ffmpeg drawtext can't render color emoji).
+# Import is guarded (try/except -> _HAS_PIL) so a missing/failed Pillow can't crash
+# the server. Pinned to match the proven port (railway/content_scraper_api.py).
+Pillow==10.4.0
