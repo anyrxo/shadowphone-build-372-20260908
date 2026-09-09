@@ -11,8 +11,8 @@
   },
   {
     "file": ".github/workflows/build-mac-isolated.yml",
-    "bytes": 3064,
-    "sha256": "ca1b1a5cb9ae9bcc9e5e9bb676a1f16e7b43b6f02e6d3e2e56afba046893b5cd"
+    "bytes": 3609,
+    "sha256": "ee7e590afdad7ca4f979fc3417d64c494e58389e8c8fc25f83a0f25a88fdb12e"
   },
   {
     "file": "electron/afterPack.js",

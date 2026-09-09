@@ -54,7 +54,16 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           python -m pip install -r requirements.txt
           python -m pip install pyinstaller
-          pyinstaller --clean --noconfirm server.spec
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          hook = Path(os.environ['RUNNER_TEMP']) / 'mac-jwt-import-diagnostic.py'
+          hook.write_text('import traceback\ntry:\n    import jwt\nexcept Exception:\n    traceback.print_exc()\n    raise\n')
+          source = Path('server.spec').read_text()
+          assert source.count('runtime_hooks=[],') == 1
+          Path('server-diagnostic.spec').write_text(source.replace('runtime_hooks=[],', f'runtime_hooks=[{str(hook)!r}],'))
+          PY
+          pyinstaller --clean --noconfirm server-diagnostic.spec
           mkdir -p ../python-bundle
           cp -R dist/server ../python-bundle/server
           chmod +x ../python-bundle/server/server
